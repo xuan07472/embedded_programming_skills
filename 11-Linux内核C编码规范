@@ -1,3 +1,5 @@
+参考资料：https://www.kernel.org/doc/Documentation/process/coding-style.rst
+
 如果你使用Linux内核C编码规范，
 则遵守以下规则：
 
