@@ -1,3 +1,10 @@
+###############################################################################
+# doxygen，用源代码的注释信息直接生成API说明文档
+# 资料详见./00_doc/00-项目管理/13-用于API文档自动生成的doxygen注释规范.md
+#
+# 使用方法：先安装doxygen，再在本配置文件同级目录下执行doxygen命令
+###############################################################################
+
 # 字符集编码
 DOXYFILE_ENCODING      = UTF-8
 
@@ -14,7 +21,7 @@ PROJECT_BRIEF          =
 PROJECT_LOGO           =
 
 # 生成文档的路径
-OUTPUT_DIRECTORY       = doxygen_doc/
+OUTPUT_DIRECTORY       = ./00_doc/01-doxygen_API/
 
 # 创建子文件夹
 CREATE_SUBDIRS         = NO
