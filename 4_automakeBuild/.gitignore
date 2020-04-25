@@ -1,6 +1,17 @@
 demo
 *.o
 
+0_doc/01-doxygen_API/html/
+0_doc/01-doxygen_API/latex/
+
+2_makefileBuild/
+3_cmakeBuild/
+5_release/
+
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
 configure.scan
 autoscan.log
 autom4te.cache/
