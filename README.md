@@ -1,7 +1,7 @@
 [《项目启动说明书》](https://gitee.com/langcai1943/embedded_programming_skills/blob/develop/0_doc/00-项目管理/01-项目启动说明书.md)
 
-**项目目录机构**
-<p>
+**项目目录结构**
+
 .
 └── embedded_programming_skills
     ├── 0_doc// 存放项目文档
@@ -38,4 +38,3 @@
     ├── Makefile         // 直接使用makefile编码时的配置文件
     ├── README.md        // 整个工程的说明文档
     └── vimrc
-</p>
