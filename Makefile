@@ -38,45 +38,39 @@ INCDIR := -I$(SRCDIR)/$(MODULE1DIR) \
 ## 将所有.c的名字换成.o存在变量中
 OBJECTS := $(foreach var, $(COMPILE), $(OBJDIR)/$(var:.c=.o))
 
-test : $(OBJECTS)
-	$(CC) -o demo $(OBJECTS)
-
-
-$(OBJDIR)/%.o : %.c
-	@mkdir -p $(dir $@)
-	$(CC) -c -o $@ $<
-	echo $(OBJECTS)
-	echo $(COMPILE)
-
-
-## 指明伪标签，伪标签不生成内容
-####.PHONY: default build clean
-
 ## 指定最终生成的可执行文件名称，也就是gcc -o 后面带的参数
 TARGET := demo
+
+## 指明伪标签，伪标签不生成内容
+.PHONY: default build clean
+
 ## :冒号前面的是make时的入口，也就是标签，make命令不带标签参数时
 #  就默认执行第一个标签，:冒号后面是执行前面标签所依赖的东西
 #  执行时会依此将依赖的东西全部递归生成完
-####build : ./$(BINDIR)/$(TARGET).bin
+#build : ./$(BINDIR)/$(TARGET).bin
+build : $(TARGET)
 
 ## 第一个真正执行的有效标签
 #  (这些所需要的文件由下面的Shell命令生成，并且只有生成目标内容所需要的文件
 #  比要生成的目标新，Shell命令才会执行)
-####./$(BINDIR)/$(TARGET).bin : $(OBJECTS)
+#./$(BINDIR)/$(TARGET).bin : $(OBJECTS)
+$(TARGET) : $(OBJECTS)
 #       make要执行的任意Shell命令，这里是gcc，**注意**缩进的语句前一定要是
 #       tab，不能是空格，空格会报错；@是取消当前语句的屏幕回显
-#       $@ 表示规则中的目标文件集，这里是所有的.o
-#       $< 规则的第一个依赖文件名,这里是每一个.o所对应的同名的.c
-####	@$(CC) -o $@ $(OBJECTS) $(LDFLAGS)
-#.PHONY: all
-##all: $(OBJDIR)/%.o
-#$(OBJDIR)/%.o : %.c
-#	$(CC) -c $(INCDIR) $(CFLAGS) -o $@ $<
+	$(CC) -o $@ $(OBJECTS) $(LDFLAGS)
+
+## 将所有.c编译成.o
+#  $@ 表示规则中的目标文件集，这里是所有的.o
+#  $< 表示规则的第一个依赖文件名，这里是每一个.o所对应的同名的.c
+$(OBJDIR)/%.o : %.c
+	@mkdir -p $(dir $@)
+	$(CC) -c $(INCDIR) $(CFLAGS) -o $@ $<
 
 ## clean是一个伪标签，用来作为make命令后面的参数，进一步执行rm Sheel脚本
 #  clean是一个约定俗称的名字，用来清理编译痕迹，方便下一次make的时候可以
 #  让所有的文件重新编译
-#clean	:
+clean	:
+	rm -r $(OBJDIR)/*
 #	rm $(BINDIR)/$(TARGET).bin
-#	rm $(OBJDIR)/*
+	rm $(TARGET)
 
