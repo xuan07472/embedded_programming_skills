@@ -21,7 +21,7 @@ PROJECT_BRIEF          =
 PROJECT_LOGO           =
 
 # 生成文档的路径
-OUTPUT_DIRECTORY       = ./00_doc/01-doxygen_API/
+OUTPUT_DIRECTORY       = ./0_doc/01-doxygen_API/
 
 # 创建子文件夹
 CREATE_SUBDIRS         = NO
@@ -287,8 +287,7 @@ EXCLUDE_PATTERNS       =
 EXCLUDE_SYMBOLS        =
 
 # 示例程序路径
-EXAMPLE_PATH           = 01_src/example/
-
+EXAMPLE_PATH           = 1_src/example/
 # 示例程序的头文档 (.h 文件) 与实现文档 (.c 文件) 都作为程序文档化对象,为空
 EXAMPLE_PATTERNS       = *
 

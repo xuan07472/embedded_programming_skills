@@ -6,7 +6,6 @@ demo
 
 2_makefileBuild/
 3_cmakeBuild/
-4_automakeBuild/
 5_release/
 
 CMakeCache.txt
