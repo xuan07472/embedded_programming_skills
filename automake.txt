@@ -14,6 +14,8 @@ https://blog.csdn.net/illina/article/details/88792949
 ############
 # 如果你是下载的别人的代码，已经有了automake配置文件
 # 直接执行这两条命令
+# 我这里的文件夹4_automakeBuild/里是一个写好的automake实例
+# 直接用下面的命令执行即可，其中main.c里面的内容是一份C语言注释范例
 ./configure
 make
 
@@ -23,11 +25,11 @@ make
 # .scan是一份.ac的雏形
 # 还有执行这一步之前先把你工程其它工具如cmake生成的中间文件全部删掉，否则
 # auto也会把这一些东西自动加进来
-先执行autoscan 创建一份默认的configure.scan配置文件
+【1】先执行autoscan 创建一份默认的configure.scan配置文件
 # 如果这一步报错Unescaped left brace in regex is deprecated, passed through in regex; marked by <-- HERE in m/\${ <-- HERE [^\}]*}/ at /usr/bin/autoscan line 361.
 # 请按报错说明把/usr/bin/autoscan文件中361行中{改为\{，}改为\}
 
-然后 cp configure.scan configure.ac 并且手动修改.ac文件，修改和自己工程相关的属性，一定要改对
+【2】然后 cp configure.scan configure.ac 并且手动修改.ac文件，修改和自己工程相关的属性，一定要改对
 这是一份模板：
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
@@ -45,16 +47,16 @@ AC_PROG_CC
 # Checks for library functions.
 AC_OUTPUT(Makefile)                         #要输出的文件名
 
-接着执行 aclocal 这会将.ac按规则转换成autom4te
-再执行autoconf 这会生成configure文件
-再执行autoheader 这会生成autoscan.log
-新建一个Makefile.am文件 touch makefile.am，按自己工程需要加入配置内容
+【3】接着执行 aclocal 这会将.ac按规则转换成autom4te
+【4】再执行autoconf 这会生成configure文件
+【5】再执行autoheader 这会生成autoscan.log
+【6】新建一个Makefile.am文件 touch makefile.am，按自己工程需要加入配置内容
 这是一份模板：
 AUTOMAKE_OPTIONS=foreign    #软件等级
 bin_PROGRAMS=hello          #可执行文件名
 hello_SOURCES=hello.c       #源文件名
 
-再执行automake --add-missing
-再执行./configure 主要把 Makefile.in 变成最终的 Makefile 文件
-最后执行make
+【7】再执行automake --add-missing
+【8】再执行./configure 主要把 Makefile.in 变成最终的 Makefile 文件
+【9】最后执行make
 
