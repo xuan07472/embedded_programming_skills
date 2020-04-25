@@ -1,0 +1,62 @@
+参考文档：
+《automake》
+http://www.gnu.org/software/automake/manual/automake.html
+《Linux下，automake 教程》
+https://blog.csdn.net/houwei544/article/details/8185916
+《从零开始写Automake —— Automake的最简单教程》
+https://blog.csdn.net/illina/article/details/88792949
+
+## 如果你的Ubuntu已经安装了gcc交叉编译工具链，可能里面已经自带了automake，但是
+#  可能会缺少部分automake组件
+
+首先安装autoconf和automake
+
+############
+# 如果你是下载的别人的代码，已经有了automake配置文件
+# 直接执行这两条命令
+# 我这里的文件夹4_automakeBuild/里是一个写好的automake实例
+# 直接用下面的命令执行即可，其中main.c里面的内容是一份C语言注释范例
+./configure
+make
+
+###########
+## 如果你是要把自己的工程编出来
+# 扫描源代码以搜寻普通的可移植性问题，比如检查编译器，库，头文件等，生成文件
+# .scan是一份.ac的雏形
+# 还有执行这一步之前先把你工程其它工具如cmake生成的中间文件全部删掉，否则
+# auto也会把这一些东西自动加进来
+【1】先执行autoscan 创建一份默认的configure.scan配置文件
+# 如果这一步报错Unescaped left brace in regex is deprecated, passed through in regex; marked by <-- HERE in m/\${ <-- HERE [^\}]*}/ at /usr/bin/autoscan line 361.
+# 请按报错说明把/usr/bin/autoscan文件中361行中{改为\{，}改为\}
+
+【2】然后 cp configure.scan configure.ac 并且手动修改.ac文件，修改和自己工程相关的属性，一定要改对
+这是一份模板：
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.65])                           #automake版本
+AC_INIT(hello, 1.0, kingplesk@gmail.com)    #设置软件包信息
+AM_INIT_AUTOMAKE(hello, 1.0)                #这个需要手动添加，它是automake必备的宏
+AC_CONFIG_SRCDIR([hello.c])                 #源文件名
+#AC_CONFIG_HEADERS([config.h])              #config.h 文件， 这个地方我们不需要config.h文件所以把它注释掉
+# Checks for programs.
+AC_PROG_CC
+# Checks for libraries.
+# Checks for header files.
+# Checks for typedefs, structures, and compiler characteristics.
+# Checks for library functions.
+AC_OUTPUT(Makefile)                         #要输出的文件名
+
+【3】接着执行 aclocal 这会将.ac按规则转换成autom4te
+【4】再执行autoconf 这会生成configure文件
+【5】再执行autoheader 这会生成autoscan.log
+【6】新建一个Makefile.am文件 touch makefile.am，按自己工程需要加入配置内容
+这是一份模板：
+AUTOMAKE_OPTIONS=foreign    #软件等级
+bin_PROGRAMS=hello          #可执行文件名
+hello_SOURCES=hello.c       #源文件名
+
+【7】再执行automake --add-missing
+【8】再执行./configure 主要把 Makefile.in 变成最终的 Makefile 文件
+【9】最后执行make
+

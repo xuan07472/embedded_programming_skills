@@ -12,3 +12,18 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 
+configure.scan
+autoscan.log
+autom4te.cache/
+aclocal.m4
+AUTHORS
+ChangeLog
+COPYING
+INSTALL
+NEWS
+README
+config.h
+config.log
+config.status
+.deps
+
