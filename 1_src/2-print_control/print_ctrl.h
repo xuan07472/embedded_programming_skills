@@ -27,6 +27,7 @@
 /*!
  * \brief 调试输出级别
  */
+#define NONE    0
 #define ERROR   1
 #define WARN    2
 #define INFO    3
@@ -60,7 +61,7 @@
  */
 #define pr(tag, ...)    do {                                        \
             if (tag <= PRINT_LEVEL) {                               \
-                printf("[" #tag "]" "{" __DATE__ __TIME__ "} "__VA_ARGS__); \
+                printf("[" #tag "]" "{" __DATE__ " " __TIME__ "} "__VA_ARGS__); \
                 printf("\n");                                       \
             }                                                       \
         } while(0);
@@ -74,9 +75,9 @@
  * \brief 带调试级别，但是不带任何额外输出信息的打印输出宏函数
  *        用于在循环中输出缓存等数据
  */
-#define pr_pure(tag, ...)    do {                                        \
+#define pr_pure(tag, ...)    do {                                   \
             if (tag <= PRINT_LEVEL)                                 \
-                printf(__VA_ARGS__);                               \
+                printf(__VA_ARGS__);                                \
         } while(0);
 #define pr_err_pure(fmt, ...)            pr_pure(ERROR, fmt, ##__VA_ARGS__);
 #define pr_warn_pure(fmt, ...)           pr_pure(WARN, fmt, ##__VA_ARGS__);
