@@ -19,32 +19,14 @@
  * -----------------------------------------------------------------------------
  ******************************************************************************/
 
-/*!
- * \brief 调试输出级别
- */
-typedef enum _print_level{
-    LEVEL_ERROR,
-    LEVEL_WARN,
-    LEVEL_INFO,
-    LEVEL_ENTRY,
-    LEVEL_DEBUG
-} PRINT_LEVEL_M;
+#include <stdio.h>
+#include <string.h>
+
+//#include "publicdef.h"
+//#include "print_ctrl.h"
 
 #define TEXT_INFO_LEN   128     /**< 菜单信息最大长度 */
-/** 不带调试级别tag和时间信息的字符串输出,自带换行 */
-#define pr_no_tag(...)      do {    \
-            printf("%c", '\n')                \
-            while(0);
-/** 调试输出 */
-#define name2str(x) (#x)
-#define pr_no_newline       printf
-#define pr_err(...)         do {    \
-                if (print_level > LEVEL_ERROR) {    \
-                    printf("[%s %s]""%s", __DATE__, __TIME__,
-                            name2str(LEVEL_ERROR)\
-                           );                       \
-                }                                   \
-            } while (0);    
+static char ibuf[TEXT_INFO_LEN];
 
 /*!
  * \brief 菜单结构体
@@ -57,16 +39,119 @@ typedef struct _menu {
     int (*func)(struct _menu *);   /**< 当前菜单的响应函数 */
 } MENU_T;
 
-int print_level = LEVEL_DEBUG;
+#define pr_info_pure printf
 
 /*!
- * \brief 打印一条菜单ID和输出信息
-int menu_display
+ * \brief 打印某一级菜单里面所有菜单项的ID和输出信息
+ */
+int menu_display(MENU_T *menus)
+{
+    MENU_T *menu;
+
+    for (menu = menus; menu; menu = menu->next) {
+        pr_info_pure("%02d.\t%s\n", menu->id, menu->text_info);
+    }
+
+    return 0;
+}
+
+int func_menu1()
+{
+    char *str;
+
+    pr_info_pure("[主菜单第一项]请输入\n");
+    memset(ibuf, 0, sizeof(ibuf));
+    scanf("%s", ibuf);
+    pr_info_pure("你输入的是: %s\n", ibuf);
+
+    return 0;
+}
+
+int func_menu2()
+{
+    char *str;
+
+    pr_info_pure("[主菜单第二项]请输入\n");
+    memset(ibuf, 0, sizeof(ibuf));
+    scanf("%s", ibuf);
+    pr_info_pure("你输入的是: %s\n", ibuf);
+
+    return 0;
+}
+
+static MENU_T menu2_1 = {
+    .id         = 1,
+    .text_info  = "menu2_1",
+    .next       = NULL,
+    .sub_menus  = NULL,
+    .func       = NULL
+};
+
+static MENU_T menu1_1 = {
+    .id         = 1,
+    .text_info  = "menu1_1",
+    .next       = NULL,
+    .sub_menus  = NULL,
+    .func       = NULL
+};
+
+static MENU_T menu2 = {
+    .id         = 2,
+    .text_info  = "[第一层][第二项]",
+    .next       = NULL,
+    .sub_menus  = &menu2_1,
+    .func       = func_menu2
+};
+
+/*！
+ * \brief 第一层菜单的第一条菜单项
+ */
+static MENU_T menu1 = {
+    .id         = 1,
+    .text_info  = "[第一层][第一项]",
+    .next       = &menu2,
+    .sub_menus  = &menu1_1,
+    .func       = func_menu1
+};
+
+static MENU_T *main_menu;
+int menus_init()
+{
+    main_menu = menu1;
+    /** 第一级菜单指针建立 */
+    menu1.next = &menu2;
+    menu2.next = &menu3;
+    menu3.next = NULL;
+
+    /** 第二级菜单指针建立 */
+    menu1.func = func_menu1;
+    menu1.sub_menus = &menu1_1;
+    menu1_1.next = &menu1_2;
+    menu1_2.next = &menu1_3;
+    menu1_3.next = NULL;
+
+    menu2.func = func_menu2;
+    menu2.sub_menus = &menu2_1;
+    menu2_1.next = &menu2_2;
+    menu2_2.next = &menu2_3;
+    menu2_3.next = NULL;
+
+    menu3.func = func_menu3;
+    menu3.sub_menus = &menu3_1;
+    menu3_1.next = &menu3_2;
+    menu3_2.next = &menu3_3;
+    menu3_3.next = NULL;
+
+    return 0;
+}
+
+#define CONSOLE_MENU_UNITEST
+#ifdef  CONSOLE_MENU_UNITEST
+int main()
+{
+
+    menu_display(&menu1);
+}
 
 
-
-
-
-
-
-
+#endif /* CONSOLE_MENU_UNITEST */
