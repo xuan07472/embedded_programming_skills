@@ -22,18 +22,20 @@ CC := gcc
 
 ## 文件夹名
 SRCDIR := 1_src
-MODULE1DIR := 1-C_comments
-MODULE2DIR := 2-test
+MODULE1DIR := 1-c_comments
+MODULE2DIR := 2-print_control
 OBJDIR := 2_makefileBuild
 BINDIR := 5_release
 
 ## 带路径的源文件名
 COMPILE := main.c
-COMPILE := $(COMPILE) $(SRCDIR)/$(MODULE2DIR)/test.c
+COMPILE := $(COMPILE) $(SRCDIR)/$(MODULE2DIR)/print_ctrl.c
 
 ## 头文件包含路径
 INCDIR := -I$(SRCDIR)/$(MODULE1DIR) \
-          -I$(SRCDIR)/$(MODULE2DIR)
+          -I$(SRCDIR)/$(MODULE2DIR) \
+          -I.                       \
+
 
 ## 将所有.c的名字换成.o存在变量中
 OBJECTS := $(foreach var, $(COMPILE), $(OBJDIR)/$(var:.c=.o))
