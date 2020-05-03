@@ -18,9 +18,25 @@
  * -----------------------------------------------------------------------------
  ******************************************************************************/
 
+/*================================= 头 文 件 =================================*/
 #include <stdio.h>
+#include <stdarg.h>
 #include "publicdef.h"
 #include "print_ctrl.h"
+
+inline int pr(int tag, ...)
+{
+//va_start va_arg va_end 
+    if (tag <= PRINT_LEVEL) {
+        va_list valist;
+        time_t timep;
+        time(&timep);
+        va_start(valist, tag);
+        printf("[%s]{%s }", name2str(tag), ctime(&timep));
+        printf(valist);
+        printf("\n");
+    }
+}
 
 /*!
  * \brief 调试输出单元测试用例
