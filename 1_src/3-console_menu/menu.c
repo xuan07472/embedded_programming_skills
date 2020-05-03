@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 #include <string.h>
-
+#include <stdlib.h>
 //#include "publicdef.h"
 //#include "print_ctrl.h"
 
@@ -88,75 +88,32 @@ static MENU_T menu3_2 = {
 };
 static MENU_T menu3_1 = {
     .id         = 1,
-    .level      = 2,
     .text_info  = "menu3_1",
 };
 static MENU_T menu1_3 = {
     .id         = 3,
-    .level      = 2,
     .text_info  = "menu1_3",
 };
 static MENU_T menu1_2 = {
     .id         = 2,
-    .level      = 2,
     .text_info  = "menu1_2",
 };
 static MENU_T menu1_1 = {
     .id         = 1,
-    .level      = 2,
     .text_info  = "menu1_1",
 };
 static MENU_T menu3 = {
     .id         = 3,
-    .level      = 1,
     .text_info  = "[第一层][第三项]",
 };
 static MENU_T menu2 = {
     .id         = 2,
-    .level      = 1,
     .text_info  = "[第一层][第二项]",
 };
 static MENU_T menu1 = {
     .id         = 1,
-    .level      = 1,
     .text_info  = "[第一层][第一项]",
 };
-/* 不需要
-int func_menu1()
-{
-    char *str;
-
-    pr_info_pure("[主菜单第一项]请输入\n");
-    memset(ibuf, 0, sizeof(ibuf));
-    scanf("%s", ibuf);
-    pr_info_pure("你输入的是: %s\n", ibuf);
-
-    return 0;
-}
-
-int func_menu2()
-{
-    char *str;
-
-    pr_info_pure("[主菜单第二项]请输入\n");
-    memset(ibuf, 0, sizeof(ibuf));
-    scanf("%s", ibuf);
-    pr_info_pure("你输入的是: %s\n", ibuf);
-
-    return 0;
-}
-int func_menu3()
-{
-    char *str;
-
-    pr_info_pure("[主菜单第三项]请输入\n");
-    memset(ibuf, 0, sizeof(ibuf));
-    scanf("%s", ibuf);
-    pr_info_pure("你输入的是: %s\n", ibuf);
-
-    return 0;
-}
-*/
 int func_menu1_1(){printf("执行完%s\n", __func__);}
 int func_menu1_2(){printf("执行完%s\n", __func__);}
 int func_menu1_3(){printf("执行完%s\n", __func__);}
@@ -166,6 +123,19 @@ int func_menu2_3(){printf("执行完%s\n", __func__);}
 int func_menu3_1(){printf("执行完%s\n", __func__);}
 int func_menu3_2(){printf("执行完%s\n", __func__);}
 int func_menu3_3(){printf("执行完%s\n", __func__);}
+static int menu_exit(){exit(0);}
+static MENU_T main_menu_exit = {
+    .id         = 0,
+    .level      = 1,
+    .text_info  = "退出程序",
+    .next       = NULL,
+    .sub_menus  = NULL,
+    .func       = menu_exit
+};
+#define MENU_GO_UP {.id = 0, .text_info = "返回上级菜单", .next = NULL, .func = NULL}
+static MENU_T menu1_x_goup = MENU_GO_UP;
+static MENU_T menu2_x_goup = MENU_GO_UP;
+static MENU_T menu3_x_goup = MENU_GO_UP;
 
 MENU_T *menu_init()
 {
@@ -175,7 +145,7 @@ MENU_T *menu_init()
     /** 第一级菜单指针建立 */
     menu1.next = &menu2;
     menu2.next = &menu3;
-    menu3.next = NULL;
+    menu3.next = &main_menu_exit;
 
     menu1.level = 1;
     menu1.func = NULL;
@@ -185,41 +155,48 @@ MENU_T *menu_init()
     menu2.func = NULL;
     menu2.sub_menus = &menu2_1;
 
-    /** 第二级菜单指针建立 */
-    menu1_1.next = &menu1_2;
-    menu1_2.next = &menu1_3;
-    menu1_3.next = NULL;
-
-    menu2_1.next = &menu2_2;
-    menu2_2.next = &menu2_3;
-    menu2_3.next = NULL;
-
-//    menu3.func = func_menu3;
+    menu3.level = 1;
     menu3.func = NULL;
     menu3.sub_menus = &menu3_1;
+
+    /** 第二级菜单指针建立 */
+    menu1_1.level = 2;
+    menu1_1.next = &menu1_2;
+    menu1_2.next = &menu1_3;
+    menu1_3.next = &menu1_x_goup;
+    menu1_x_goup.sub_menus = &menu1;
+
+    menu2_1.level = 2;
+    menu2_1.next = &menu2_2;
+    menu2_2.next = &menu2_3;
+    menu2_3.next = &menu2_x_goup;
+    menu2_x_goup.sub_menus = &menu1;
+
+    menu3_1.level = 2;
     menu3_1.next = &menu3_2;
     menu3_2.next = &menu3_3;
-    menu3_3.next = NULL;
+    menu3_3.next = &menu3_x_goup;
+    menu3_x_goup.sub_menus = &menu1;
 
-    /** 第三级菜单指针建立 */
+    /** 末级菜单执行执行函数 */
     menu1_1.func = func_menu1_1;
-    menu1_1.sub_menus = NULL;
+    menu1_1.sub_menus = &menu1_1;
     menu1_2.func = func_menu1_2;
-    menu1_2.sub_menus = NULL;
+    menu1_2.sub_menus = &menu1_1;
     menu1_3.func = func_menu1_3;
-    menu1_3.sub_menus = NULL;
+    menu1_3.sub_menus = &menu1_1;
     menu2_1.func = func_menu2_1;
-    menu2_1.sub_menus = NULL;
+    menu2_1.sub_menus = &menu2_1;
     menu2_2.func = func_menu2_2;
-    menu2_2.sub_menus = NULL;
+    menu2_2.sub_menus = &menu2_1;
     menu2_3.func = func_menu2_3;
-    menu2_3.sub_menus = NULL;
+    menu2_3.sub_menus = &menu2_1;
     menu3_1.func = func_menu3_1;
-    menu3_1.sub_menus = NULL;
+    menu3_1.sub_menus = &menu3_1;
     menu3_2.func = func_menu3_2;
-    menu3_2.sub_menus = NULL;
+    menu3_2.sub_menus = &menu3_1;
     menu3_3.func = func_menu3_3;
-    menu3_3.sub_menus = NULL;
+    menu3_3.sub_menus = &menu3_1;
 
     return main_menu;
 }
@@ -261,6 +238,7 @@ int main()
         menu_display(menu);
         printf("请输入序号:\n");
         scanf("%d", &id);
+        printf("\n");
         menu = menu_enter(menu, id);
     }
 }
