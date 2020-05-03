@@ -38,11 +38,11 @@ int print_ctrl_unitest()
     pr_debug("debug string%s\n", "test");
 
     for (i = 0; i < 100; i++)
-        pr_info_pure("%d", i);
+        pr_info_pure("%d ", i);
     pr_info_pure("\n");
 
     for (i = 0; i < 100; i++)
-        pr_debug_pure("%d", i);
+        pr_debug_pure("%d ", i);
     pr_debug_pure("\n");
 
     pr_entry(out);

@@ -1,1 +1,66 @@
-/* TX_dbg_mbuf_len, RX_dbg_mbuf_len */                                              #define Dbg_clear(PREFIX)               do { PREFIX##_dbg_mbuf_len = 0;} while (0)  /* TX_dbg_mbuf, RX_dbg_mbuf */                                                      #define Dbg_append_s(PREFIX, ...)       do {                                            \                                                                                                   if (PREFIX##_dbg_mbuf_len <= PREFIX##_DBG_LEN)                      \                                                                                                       PREFIX##_dbg_mbuf_len += snprintf( PREFIX##_dbg_mbuf +          \                                                                                                       PREFIX##_dbg_mbuf_len,                                          \                                                                                                       PREFIX##_DBG_LEN - PREFIX##_dbg_mbuf_len, ##__VA_ARGS__);       \                                                                                               } while (0)                                                         #define Dbg_append_c(PREFIX, c)         do {                                            \                                                                                                       if ( PREFIX##_dbg_mbuf_len + 1 < PREFIX##_DBG_LEN)              \                                                                                                           PREFIX##_dbg_mbuf[ PREFIX##_dbg_mbuf_len++ ] = (c);         \                                                                                                   } while (0) 
+/*******************************************************************************
+ * Copyleft (c) 2020 将狼才鲸
+ *
+ * \file    menu.h
+ * \brief   字符界面菜单模块
+ * \author  将狼才鲸
+ * \version 1.0.0
+ * \date    2020-05-01
+ * \license MulanPSL-1.0
+ *
+ * -----------------------------------------------------------------------------
+ * 备注：利用printf和scanf实现多级菜单，用于用户交互，方便在任意位置增加删除
+ *       子条目
+ *
+ * -----------------------------------------------------------------------------
+ * 文件修改历史：
+ * <时间>       | <版本>    | <作者>    | <描述>
+ * 2020-05-01   | v1.0.0    | 将狼才鲸  | 创建文件
+ * -----------------------------------------------------------------------------
+ ******************************************************************************/
+
+#ifndef _MENU__H
+#define _MENU__H
+
+/*================================= 头 文 件 =================================*/
+#include "publicdef.h"
+
+/*================================= 宏 定 义 =================================*/
+#define TEXT_INFO_LEN   128     /**< 菜单输入信息缓存长度 */
+
+/*================================= 结 构 体 =================================*/
+/*!
+ * \brief 菜单结构体
+ */
+typedef struct _menu {
+    int id;                         /**< 打印出的菜单序号 */
+    int level;                      /**< 菜单层级 */
+    char text_info[TEXT_INFO_LEN];  /**< 打印出的菜单信息 */
+    struct _menu *next;             /**< 同一级菜单中下一条菜单指针 */
+    struct _menu *sub_menus;        /**< 下一级菜单入口 */
+    int (*func)(void);              /**< 当前菜单的响应函数 */
+} MENU_T;
+
+/*!
+ * \brief 建立起完整的菜单链表
+ */
+MENU_T *menu_init(void);
+
+/*!
+ * \brief 打印某一级菜单里面所有菜单项的ID和输出信息
+ */
+int menu_display(MENU_T *menus);
+
+/*!
+ * \brief 进入一个子菜单或者执行末级菜单的程序
+ */
+MENU_T *menu_enter(MENU_T *menu, int id);
+
+#ifdef  MENU_MODULE_UNITEST
+/*!
+ * \brief 单元测试程序
+ */
+int menu_unitest(void);
+#endif /* MENU_MODULE_UNITEST */
+
+#endif /* _MENU__H */

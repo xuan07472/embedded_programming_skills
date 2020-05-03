@@ -241,12 +241,6 @@ static struct menu mn_main_mreg = {
 };
 
 static void mn_version_action(struct menu *m) {
-    int len = 0;
-    char *version = (char *)malloc(64);
-    memset(version, 0, 64);
-    modem_version(version, &len);
-    printf("Modem versions:\n%s", version);
-    free(version);
 }
 
 static void mn_sleep_action(struct menu *m) {

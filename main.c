@@ -17,12 +17,13 @@
  * -----------------------------------------------------------------------------
  ******************************************************************************/
 
+/*================================= 头 文 件 =================================*/
 #include <stdio.h>
 #include "publicdef.h"
 
 #ifdef ALL_MODULES_UNITEST
 #include "print_ctrl.h"
-
+#include "menu.h"
 int main()
 {
 #ifdef ALL_MODULES_UNITEST
@@ -32,6 +33,7 @@ int main()
 #endif
 
     print_ctrl_unitest();
+    menu_unitest();
 
     return 0;
 }
