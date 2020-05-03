@@ -33,6 +33,7 @@ static char ibuf[TEXT_INFO_LEN];
  */
 typedef struct _menu {
     int id;                         /**< 打印出的菜单序号 */
+    int level;                      /**< 菜单层级 */
     char text_info[TEXT_INFO_LEN];  /**< 打印出的菜单信息 */
     struct _menu *next;             /**< 同一级菜单中下一条菜单指针 */
     struct _menu *sub_menus;        /**< 下一级菜单入口 */
@@ -48,62 +49,79 @@ int menu_display(MENU_T *menus)
 {
     MENU_T *menu;
 
+    pr_info_pure(" ______________________________\n");
+    if (menus)
+        pr_info_pure("|~~~~~~~~~~ %d级菜单 ~~~~~~~~~~~\n", menus->level);
     for (menu = menus; menu; menu = menu->next) {
-        pr_info_pure("%02d.\t%s\n", menu->id, menu->text_info);
+        pr_info_pure("| %d.\t%s\n", menu->id, menu->text_info);
     }
+
+    pr_info_pure(" ------------------------------\n");
 
     return 0;
 }
 static MENU_T menu2_3 = {
     .id         = 3,
+    .level      = 2,
     .text_info  = "menu2_3",
 };
 static MENU_T menu2_2 = {
     .id         = 2,
+    .level      = 2,
     .text_info  = "menu2_2",
 };
 static MENU_T menu2_1 = {
     .id         = 1,
+    .level      = 2,
     .text_info  = "menu2_1",
 };
 
 static MENU_T menu3_3 = {
     .id         = 3,
+    .level      = 2,
     .text_info  = "menu3_3",
 };
 static MENU_T menu3_2 = {
     .id         = 2,
+    .level      = 2,
     .text_info  = "menu3_2",
 };
 static MENU_T menu3_1 = {
     .id         = 1,
+    .level      = 2,
     .text_info  = "menu3_1",
 };
 static MENU_T menu1_3 = {
     .id         = 3,
+    .level      = 2,
     .text_info  = "menu1_3",
 };
 static MENU_T menu1_2 = {
     .id         = 2,
+    .level      = 2,
     .text_info  = "menu1_2",
 };
 static MENU_T menu1_1 = {
     .id         = 1,
+    .level      = 2,
     .text_info  = "menu1_1",
 };
 static MENU_T menu3 = {
     .id         = 3,
+    .level      = 1,
     .text_info  = "[第一层][第三项]",
 };
 static MENU_T menu2 = {
     .id         = 2,
+    .level      = 1,
     .text_info  = "[第一层][第二项]",
 };
 static MENU_T menu1 = {
     .id         = 1,
+    .level      = 1,
     .text_info  = "[第一层][第一项]",
 };
-
+/* 不需要
 int func_menu1()
 {
     char *str;
@@ -138,16 +156,16 @@ int func_menu3()
 
     return 0;
 }
-
-int func_menu1_1(){printf("%s\n", __func__);}
-int func_menu1_2(){printf("%s\n", __func__);}
-int func_menu1_3(){printf("%s\n", __func__);}
-int func_menu2_1(){printf("%s\n", __func__);}
-int func_menu2_2(){printf("%s\n", __func__);}
-int func_menu2_3(){printf("%s\n", __func__);}
-int func_menu3_1(){printf("%s\n", __func__);}
-int func_menu3_2(){printf("%s\n", __func__);}
-int func_menu3_3(){printf("%s\n", __func__);}
+*/
+int func_menu1_1(){printf("执行完%s\n", __func__);}
+int func_menu1_2(){printf("执行完%s\n", __func__);}
+int func_menu1_3(){printf("执行完%s\n", __func__);}
+int func_menu2_1(){printf("执行完%s\n", __func__);}
+int func_menu2_2(){printf("执行完%s\n", __func__);}
+int func_menu2_3(){printf("执行完%s\n", __func__);}
+int func_menu3_1(){printf("执行完%s\n", __func__);}
+int func_menu3_2(){printf("执行完%s\n", __func__);}
+int func_menu3_3(){printf("执行完%s\n", __func__);}
 
 MENU_T *menu_init()
 {
@@ -159,20 +177,25 @@ MENU_T *menu_init()
     menu2.next = &menu3;
     menu3.next = NULL;
 
-    /** 第二级菜单指针建立 */
-    menu1.func = func_menu1;
+    menu1.level = 1;
+    menu1.func = NULL;
     menu1.sub_menus = &menu1_1;
+
+    menu2.level = 1;
+    menu2.func = NULL;
+    menu2.sub_menus = &menu2_1;
+
+    /** 第二级菜单指针建立 */
     menu1_1.next = &menu1_2;
     menu1_2.next = &menu1_3;
     menu1_3.next = NULL;
 
-    menu2.func = func_menu2;
-    menu2.sub_menus = &menu2_1;
     menu2_1.next = &menu2_2;
     menu2_2.next = &menu2_3;
     menu2_3.next = NULL;
 
-    menu3.func = func_menu3;
+//    menu3.func = func_menu3;
+    menu3.func = NULL;
     menu3.sub_menus = &menu3_1;
     menu3_1.next = &menu3_2;
     menu3_2.next = &menu3_3;
@@ -213,8 +236,11 @@ MENU_T *menu_enter(MENU_T *menu, int id)
     if (!m)
         return NULL;
 
-    if (m->func)
+    if (m->func) {
+        pr_info_pure(" ```````` 开始执行程序 ````````\n\t");
         m->func(m);
+        pr_info_pure(" .......... 执行完成 ..........\n");
+    }
 
     return m->sub_menus;
 }
@@ -233,7 +259,7 @@ int main()
      */
     while (1) {
         menu_display(menu);
-        printf("请输入序号\n");
+        printf("请输入序号:\n");
         scanf("%d", &id);
         menu = menu_enter(menu, id);
     }
