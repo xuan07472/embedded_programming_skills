@@ -23,12 +23,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//#include "publicdef.h"
-//#include "print_ctrl.h"
+#include "print_ctrl.h"
 #include "menu.h"
 
 /*================================= 宏 定 义 =================================*/
-#define pr_info_pure printf     /* 先临时定义print_ctrl.h中的函数，后续再删除 */
+//#define pr_info_pure printf     /* 先临时定义print_ctrl.h中的函数，后续再删除 */
 /** 返回上级菜单的菜单项内容 */
 #define MENU_GO_UP                          \
         {                                   \
@@ -231,12 +230,12 @@ MENU_T *menu_enter(MENU_T *menu, int id)
     return m->sub_menus;
 }
 
-#define CONSOLE_MENU_UNITEST
-#ifdef  CONSOLE_MENU_UNITEST
+//#define MENU_MODULE_UNITEST /* 已经在publidef.h中定义 */
+#ifdef  MENU_MODULE_UNITEST
 /*!
  * \brief 单元测试程序
  */
-int main()
+int menu_unitest(void)
 {
     int id = 0;
     MENU_T *menu;
@@ -263,4 +262,13 @@ int main()
         menu = menu_enter(menu, id);
     }
 }
-#endif /* CONSOLE_MENU_UNITEST */
+
+/* 如果不是所有模块一起做单元测试，则需要自己定义main函数入口 */
+#ifndef ALL_MODULES_UNITEST
+int main()
+{
+    return menu_unitest();
+}
+#endif /* ALL_MODULES_UNITEST */
+
+#endif /* MENU_MODULE_UNITEST */

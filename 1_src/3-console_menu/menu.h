@@ -22,6 +22,9 @@
 #ifndef _MENU__H
 #define _MENU__H
 
+/*================================= 头 文 件 =================================*/
+#include "publicdef.h"
+
 /*================================= 宏 定 义 =================================*/
 #define TEXT_INFO_LEN   128     /**< 菜单输入信息缓存长度 */
 
@@ -52,5 +55,12 @@ int menu_display(MENU_T *menus);
  * \brief 进入一个子菜单或者执行末级菜单的程序
  */
 MENU_T *menu_enter(MENU_T *menu, int id);
+
+#ifdef  MENU_MODULE_UNITEST
+/*!
+ * \brief 单元测试程序
+ */
+int menu_unitest(void);
+#endif /* MENU_MODULE_UNITEST */
 
 #endif /* _MENU__H */

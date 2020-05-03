@@ -24,16 +24,19 @@ CC := gcc
 SRCDIR := 1_src
 MODULE1DIR := 1-c_comments
 MODULE2DIR := 2-print_control
+MODULE3DIR := 3-console_menu
 OBJDIR := 2_makefileBuild
 BINDIR := 5_release
 
 ## 带路径的源文件名
 COMPILE := main.c
 COMPILE := $(COMPILE) $(SRCDIR)/$(MODULE2DIR)/print_ctrl.c
+COMPILE := $(COMPILE) $(SRCDIR)/$(MODULE3DIR)/menu.c
 
 ## 头文件包含路径
 INCDIR := -I$(SRCDIR)/$(MODULE1DIR) \
           -I$(SRCDIR)/$(MODULE2DIR) \
+          -I$(SRCDIR)/$(MODULE3DIR) \
           -I.                       \
 
 
