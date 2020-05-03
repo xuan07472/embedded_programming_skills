@@ -62,28 +62,23 @@ int menu_display(MENU_T *menus)
 }
 static MENU_T menu2_3 = {
     .id         = 3,
-    .level      = 2,
     .text_info  = "menu2_3",
 };
 static MENU_T menu2_2 = {
     .id         = 2,
-    .level      = 2,
     .text_info  = "menu2_2",
 };
 static MENU_T menu2_1 = {
     .id         = 1,
-    .level      = 2,
     .text_info  = "menu2_1",
 };
 
 static MENU_T menu3_3 = {
     .id         = 3,
-    .level      = 2,
     .text_info  = "menu3_3",
 };
 static MENU_T menu3_2 = {
     .id         = 2,
-    .level      = 2,
     .text_info  = "menu3_2",
 };
 static MENU_T menu3_1 = {
@@ -123,7 +118,7 @@ int func_menu2_3(){printf("执行完%s\n", __func__);}
 int func_menu3_1(){printf("执行完%s\n", __func__);}
 int func_menu3_2(){printf("执行完%s\n", __func__);}
 int func_menu3_3(){printf("执行完%s\n", __func__);}
-static int menu_exit(){exit(0);}
+static int menu_exit(){printf("退出菜单......\n");exit(0);}
 static MENU_T main_menu_exit = {
     .id         = 0,
     .level      = 1,
@@ -210,8 +205,10 @@ MENU_T *menu_enter(MENU_T *menu, int id)
             break;
     }
 
-    if (!m)
-        return NULL;
+    if (!m) {
+        pr_info_pure("!该序号%d不存在! 请重新输入......\n", id);
+        return menu;
+    }
 
     if (m->func) {
         pr_info_pure(" ```````` 开始执行程序 ````````\n\t");
@@ -224,9 +221,10 @@ MENU_T *menu_enter(MENU_T *menu, int id)
 
 #define CONSOLE_MENU_UNITEST
 #ifdef  CONSOLE_MENU_UNITEST
+
 int main()
 {
-    int id;
+    int id = 0;
     MENU_T *menu;
 
     menu = menu_init();
@@ -236,8 +234,15 @@ int main()
      */
     while (1) {
         menu_display(menu);
-        printf("请输入序号:\n");
-        scanf("%d", &id);
+        printf("请输入序号......\n");
+        memset(ibuf, 0, sizeof(ibuf));
+        scanf("%s", ibuf);
+        if ((ibuf[0] < '0') || (ibuf[0] > '9')) {
+            printf("输入了非数字: %s，请重新输入......\n", ibuf);
+            continue;
+        }
+        id = atoi(ibuf); /**< 修正输入错误id时刷屏的bug  */
+        printf("你输入的id为: %d\n", id);
         printf("\n");
         menu = menu_enter(menu, id);
     }
