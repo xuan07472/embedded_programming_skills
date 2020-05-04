@@ -66,7 +66,8 @@ void test(char *fmt, ...)
     va_list valist;
 
     va_start(valist, fmt); /* 访问所有赋给 valist 的参数 */
-    printf(fmt, valist);
+    vprintf(fmt, valist);
+    va_end(valist);
 }
 
 int pr(int tag, char *tagstr, char *fmt, ...)
@@ -91,24 +92,24 @@ int pr(int tag, char *tagstr, char *fmt, ...)
                 tagstr, 1900 + p->tm_year,
                 1 + p->tm_mon, p->tm_mday,
                 p->tm_hour, p->tm_min, p->tm_sec);
-        printf(fmt, valist);
+        vprintf(fmt, valist);
         printf("\n");
     }
 }
 
 #define pr_err(x,y,...) pr((x),(y), "()"__VA_ARGS__)
-//__func__和__LINE__不能在宏定义函数中拼接
-#define pr_test(...) printf(__DATE__ __VA_ARGS__)
+//__func__和__LINE__不能在宏定义函数中拼接，只能作为单个参数
+#define pr_test(x) printf("%s %d\n", __DATE__ __TIME__, (x))
 int main()
 {
-    //test("this is a %s, int: %d, float: %f\n",
-    //     "test string", 10, 5.2);
+    test("this is a %s, int: %d, float: %f\n",
+         "test string", 10, 5.2);
     //pr(INFO, name2str(INFO),"test string");
     //pr_err(ERROR, name2str(ERROR), __func__"()line:"__LINE__"TEST STRING");
     //pr_err(ERROR, name2str(ERROR), "TEST STRING");
 //    pr_err(ERROR, name2str(ERROR), "TEST STRING %s %d",  __func__, __LINE__);
-    printf("%s %d\n", __func__, __LINE__);
-    pr_test("test %s\n", "str");
+    //printf("%s %d\n", __func__, __LINE__);
+    //pr_test(11);
 }
 #endif
 

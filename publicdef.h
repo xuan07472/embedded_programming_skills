@@ -35,7 +35,7 @@
 #define MODULES_UNITEST     /**< 是否编译单元测试用例 */
 #ifdef  MODULES_UNITEST     /**< 开启以下模块的单元测试用例编译 */
 #   define PRINT_CTRL_MODULE_UNITEST
-#   define MENU_MODULE_UNITEST
+//#   define MENU_MODULE_UNITEST
 #endif /* MODULES_UNITEST */
 
 #define ALL_MODULES_UNITEST /**< 一次性编出所有模块的单元测试用例 */

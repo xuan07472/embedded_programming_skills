@@ -59,6 +59,8 @@
  *          printf的第一个参数可以用多个字符串拼起来，不加逗号，
  *          如printf("Th""is"" is"" a"" string");
  */
+int pr(int tag, char *tagstr, char *fmt, ...);
+#if 0
 #define pr(tag, ...)    do {                                        \
             if (tag <= PRINT_LEVEL) {                               \
                 printf("[" #tag "]" "{" __DATE__ " " __TIME__ "} "__VA_ARGS__); \
@@ -70,6 +72,7 @@
 #define pr_info(fmt, ...)           pr(INFO, fmt, ##__VA_ARGS__);
 #define pr_entry(inout)             pr(ENTRY, "%s() %s", __func__, #inout);
 #define pr_debug(fmt, ...)          pr(DEBUG, fmt, ##__VA_ARGS__);
+#endif
 
 /*!
  * \brief 带调试级别，但是不带任何额外输出信息的打印输出宏函数
