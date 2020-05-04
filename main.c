@@ -33,7 +33,7 @@ int main()
 #endif
 
     print_ctrl_unitest();
-//    menu_unitest();
+    menu_unitest();
 
     return 0;
 }
