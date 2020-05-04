@@ -108,7 +108,7 @@ int print_ctrl_unitest()
     int i;
     pr_entry(in);
 
-    pr_func(ERROR, name2str(INFO), __FILE__, __func__, __LINE__, "err pr_func...");
+    pr_func(ERROR, name2str(ERROR), __FILE__, __func__, __LINE__, "err pr_func...");
     pr_err("err %s %d %f", "pr_err", 1024, 5.20);
 
     pr(WARN, name2str(WARN), "warn pr int: %d", 100);

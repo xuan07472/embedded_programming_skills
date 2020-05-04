@@ -25,7 +25,7 @@
  * \brief 定义print_ctrl.h中的默认调试输出级别
  *        (也可以不在这里定义，在Makefile中定义)
  */
-#define PRINT_LEVEL     DEBUG    /**< 默认调试级别 */
+#define PRINT_LEVEL     INFO    /**< 默认调试级别 */
 
 /*!
  * \brief 控制一次将所有模块编译成一个执行文件，
