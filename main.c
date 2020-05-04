@@ -27,7 +27,7 @@
 int main()
 {
 #ifdef ALL_MODULES_UNITEST
-//    pr_info("ALL_MODULES_UNITEST defined, 运行所有模块单元测试用例\n");
+    pr_info("ALL_MODULES_UNITEST defined, 运行所有模块单元测试用例\n");
 #else
     printf("ALL_MODULES_UNITEST not define，不运行单元测试用例\n");
 #endif

@@ -51,7 +51,42 @@
 #endif
 
 /*!
- * \brief   带调试级别的，补全级别信息和时间信息、自动换行的打印输出宏函数
+ * \brief 调试输出接口
+ *
+ * 备注：还有另外一种方法，用一个缓存使用snprintf实现，这样既可以控制
+ *       输出，还可以方便存日志，这种方法后续再做
+ *
+ * \param[in] tag       调试级别
+ * \param[in] tagstr    调试级别字符串
+ * \param[in] fmt, ...  printf的可变参数
+ */
+int pr(int tag, char *tagstr, char *fmt, ...);
+
+/*!
+ * \brief 调试信息加上级别、时间、文件名、函数名、文件行、换行信息
+ *
+ *        因为__func__ __LINE__ __FILE__这几个变量不能和printf的fmt参数
+ *        直接拼接起来，所以这里用参数传入
+ *
+ * \param[in] tag       调试级别
+ * \param[in] tagstr    调试级别字符串
+ * \param[in] filestr   文件名字符串
+ * \param[in] funcstr   函数名字符串
+ * \param[in] line      当前代码行数
+ * \param[in] fmt, ...  printf的可变参数
+ */
+int pr_func(int tag, char *tagstr, char *filestr, const char *funcstr, int line, char *fmt, ...);
+
+#define pr_err(...)     \
+    pr_func(ERROR, name2str(ERROR), __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define pr_warn(...)    pr(WARN, name2str(WARN), __VA_ARGS__);
+#define pr_info(...)    pr(INFO, name2str(WARN), __VA_ARGS__);
+#define pr_entry(inout) \
+    pr(ENTRY, name2str(ENTRY), "%s() %s", __func__, #inout);
+#define pr_debug(...)   pr(DEBUG, name2str(DEBUG), __VA_ARGS__);
+
+/*!
+ * \brief   带调试级别的打印输出宏函数
  *
  *          ...作为宏函数的可变变量，使用时用__VA_ARGS__
  *          或者##_VA_ARGS__(这里的##意思是即使参数为空也正常执行)。
@@ -59,29 +94,11 @@
  *          printf的第一个参数可以用多个字符串拼起来，不加逗号，
  *          如printf("Th""is"" is"" a"" string");
  */
-int pr(int tag, char *tagstr, char *fmt, ...);
-#if 0
-#define pr(tag, ...)    do {                                        \
-            if (tag <= PRINT_LEVEL) {                               \
-                printf("[" #tag "]" "{" __DATE__ " " __TIME__ "} "__VA_ARGS__); \
-                printf("\n");                                       \
-            }                                                       \
-        } while(0);
-#define pr_err(fmt, ...)            pr(ERROR, fmt, ##__VA_ARGS__);
-#define pr_warn(fmt, ...)           pr(WARN, fmt, ##__VA_ARGS__);
-#define pr_info(fmt, ...)           pr(INFO, fmt, ##__VA_ARGS__);
-#define pr_entry(inout)             pr(ENTRY, "%s() %s", __func__, #inout);
-#define pr_debug(fmt, ...)          pr(DEBUG, fmt, ##__VA_ARGS__);
-#endif
-
-/*!
- * \brief 带调试级别，但是不带任何额外输出信息的打印输出宏函数
- *        用于在循环中输出缓存等数据
- */
 #define pr_pure(tag, ...)    do {                                   \
             if (tag <= PRINT_LEVEL)                                 \
                 printf(__VA_ARGS__);                                \
         } while(0);
+
 #define pr_err_pure(fmt, ...)            pr_pure(ERROR, fmt, ##__VA_ARGS__);
 #define pr_warn_pure(fmt, ...)           pr_pure(WARN, fmt, ##__VA_ARGS__);
 #define pr_info_pure(fmt, ...)           pr_pure(INFO, fmt, ##__VA_ARGS__);
