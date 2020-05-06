@@ -80,7 +80,7 @@ int pr_func(int tag, char *tagstr, char *filestr, const char *funcstr, int line,
 #define pr_err(...)     \
     pr_func(ERROR, name2str(ERROR), __FILE__, __func__, __LINE__, __VA_ARGS__)
 #define pr_warn(...)    pr(WARN, name2str(WARN), __VA_ARGS__);
-#define pr_info(...)    pr(INFO, name2str(WARN), __VA_ARGS__);
+#define pr_info(...)    pr(INFO, name2str(INFO), __VA_ARGS__);
 #define pr_entry(inout) \
     pr(ENTRY, name2str(ENTRY), "%s() %s", __func__, #inout);
 #define pr_debug(...)   pr(DEBUG, name2str(DEBUG), __VA_ARGS__);
