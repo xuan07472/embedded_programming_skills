@@ -1,10 +1,15 @@
-// 适用于无操作系统，无线程同步，但有多模块相互之间两两通信的场景
+// 多模块相互之间两两通信的场景
 
 #include <stdio.h>
 
 #define MODULES_COUNT 3
 #define ECOMM       (-1)
 #define pr_err printf
+
+// web/web_param_rw.c
+// bprotocol/bprotol_interface.c
+// ether/net.c
+// uart/uart_com_rev.c
 
 typedef int (*FUNC)(void);
 typedef struct {
