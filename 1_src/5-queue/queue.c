@@ -1,210 +1,69 @@
-/*
- * Copied from TI SYS/BIOS.
- *
- *  ======== Queue.c ========
- */
+#include <stdio.h>
+#include <string.h>
 
-#include <pthread.h>
-#include "queue.h"
-#include "merrno.h"
+typedef struct _ELEM {
+    struct _ELEM *next;
+    struct _ELEM *prev;
+} ELEM;
 
-pthread_spinlock_t mutex;
-
-/*
- *  ======== init ========
- */
-int Queue_init(void)
+void queue_create(ELEM *elem)
 {
-    pthread_spin_init(&mutex, 0);
+    elem->next = elem->prev = elem;
+}
+void queue_put(ELEM *obj, ELEM *elem)
+{
+    elem->next = obj;
+    elem->prev = obj->prev;
+
+    (obj->prev)->next = elem;
+    obj->prev = elem;
 }
 
-/*
- *  ======== create ========
- */
-void Queue_create(Queue_Object *obj)
+ELEM *queue_get(ELEM *obj)
 {
-    /** 第一个元素不算有效数据 */
-    obj->elem.next = obj->elem.prev = &(obj->elem);
+    ELEM *elem;
+    
+    elem = obj->next;
+    obj->next = elem->next;
+    elem->next->prev = obj;
+
+    return elem;
 }
 
-/*
- *  ======== empty ========
- */
-int Queue_empty(Queue_Object *obj)
+int queue_empty(ELEM *obj)
 {
-    return (obj->elem.next == &(obj->elem));
+    return (obj->next == obj);
 }
 
-/*
- *  ======== get ========
- */
-Queue_Elem *Queue_get(Queue_Object *obj)
+/** 单元测试 */
+typedef struct _config {
+    ELEM elem;
+    int payload;
+} CONFIG_T;
+#define pr_info printf
+#define MAX_CONF 16
+int main(int argc, char *argv[])
 {
-    Queue_Elem *elem;
+    int i;
+    ELEM queue_obj;
+    ELEM *elem_ret;
+    CONFIG_T config[MAX_CONF];
 
-    pthread_spin_lock(&mutex);
-
-    elem = obj->elem.next;
-
-    /** obj->elem.next是队头元素，抽出队头元素 */
-    obj->elem.next = elem->next;
-    elem->next->prev = &(obj->elem);
-
-    pthread_spin_unlock(&mutex);
-
-    return (elem);
-
-}
-
-/*
- *  ======== put ========
- */
-void Queue_put(Queue_Object *obj, Queue_Elem *elem)
-{
-    pthread_spin_lock(&mutex);
-
-    elem->next = &(obj->elem);
-    elem->prev = obj->elem.prev;
-    /** obj->elem.prev是队尾元素，在队尾元素后面插入一个 */
-    obj->elem.prev->next = elem;
-    obj->elem.prev = elem;
-
-    pthread_spin_unlock(&mutex);
-}
-
-/*
- *  ======== delete ========
- */
-void Queue_delete(Queue_Object *obj)
-{
-    obj->elem.next = obj->elem.prev = &(obj->elem);
-}
-
-/** 以下为非常用接口或者兼容接口 */
-/*
- *  ======== dequeue ========
- */
-Queue_Elem *Queue_dequeue(Queue_Object *obj)
-{
-    Queue_Elem *elem;
-    Queue_Elem *next;
-
-    elem = obj->elem.next;
-    next = elem->next;
-    obj->elem.next = next;
-    next->prev = &(obj->elem);
-
-    return (elem);
-}
-
-/*
- *  ======== enqueue ========
- */
-void Queue_enqueue(Queue_Object *obj, Queue_Elem *elem)
-{
-    Queue_Elem *prev;
-
-    prev = obj->elem.prev;
-
-    elem->next = &(obj->elem);
-    elem->prev = prev;
-    prev->next = elem;
-    obj->elem.prev = elem;
-}
-
-/*
- *  ======== getTail ========
- */
-Queue_Elem *Queue_getTail(Queue_Object *obj)
-{
-    Queue_Elem *elem;
-
-    pthread_spin_lock(&mutex);
-
-    elem = obj->elem.prev;
-
-    obj->elem.prev = elem->prev;
-    elem->prev->next = &(obj->elem);
-
-    pthread_spin_unlock(&mutex);
-
-    return (elem);
-
-}
-
-/*
- *  ======== head ========
- */
-Queue_Elem *Queue_head(Queue_Object *obj)
-{
-    return (obj->elem.next);
-}
-
-/*
- *  ======== elemClear ========
- */
-void Queue_elemClear(Queue_Elem *qelem)
-{
-    qelem->next = qelem->prev = qelem;
-}
-
-/*
- *  ======== insert ========
- */
-void Queue_insert(Queue_Elem *qelem, Queue_Elem *elem)
-{
-    Queue_enqueue((Queue_Object *)qelem, elem);
-}
-
-/*
- *  ======== next ========
- */
-Queue_Elem *Queue_next(Queue_Elem *qelem)
-{
-    return (qelem->next);
-}
-
-/*
- *  ======== prev ========
- */
-Queue_Elem *Queue_prev(Queue_Elem *qelem)
-{
-    return (qelem->prev);
-}
-
-/*
- *  ======== putHead ========
- */
-void Queue_putHead(Queue_Object *obj, Queue_Elem *elem)
-{
-    pthread_spin_lock(&mutex);
-
-    elem->prev = &(obj->elem);
-    elem->next = obj->elem.next;
-    obj->elem.next->prev = elem;
-    obj->elem.next = elem;
-
-    pthread_spin_unlock(&mutex);
-}
-
-/*
- *  ======== remove ========
- */
-void Queue_remove(Queue_Elem *qelem) 
-{
-    qelem->prev->next = qelem->next;
-    qelem->next->prev = qelem->prev;
-}
-
-/*
- *  ======== isQueued ========
- */
-int Queue_isQueued(Queue_Elem *qelem) 
-{
-    if ((qelem->prev == qelem) && (qelem->next == qelem)) {
-        return (-MENODATA);
+    pr_info("%s\n", argv[0]);
+        
+    memset(&config, 0, sizeof(config));
+    queue_create(&queue_obj);
+    for (i = 0; i < MAX_CONF; i++) {
+        config[i].payload = i;
+        queue_put(&queue_obj, &config[i].elem);
     }
-    else {
-        return (0);
+    for (i = 0; i < MAX_CONF; i++) {
+        if (!queue_empty(&queue_obj)) {
+            elem_ret = queue_get(&queue_obj);
+            pr_info("==%d\n", ((CONFIG_T *)elem_ret)->payload);
+        }
     }
+
+    return 0;    
 }
+
