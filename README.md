@@ -1,6 +1,7 @@
+**项目说明**
 [《项目启动说明书》](https://gitee.com/langcai1943/embedded_programming_skills/blob/develop/0_doc/00-项目管理/01-项目启动说明书.md)
 
-**项目目录结构**
+**项目文件目录结构**
 <p>
 .<br>
 └── embedded_programming_skills<br>
@@ -13,8 +14,17 @@
     │   ├── 01-doxygen_A// doxygen工具从源码注释中自动生成文档的路<br>
     │   └── LICENSE     // 整个工程的许可<br>
     ├── 1_src            // 源码目录<br>
-    │   ├── aDoxygenDemo.h<br>
-    │   └── example<br>
+    │   ├── 01-c_comments       // C语言编码注释规范示例<br>
+    │   ├── 02-print_control    // print调试输出级别控制<br>
+    │   ├── 03-console_menu     // 字符菜单<br>
+    │   ├── 04-loop_buffer      // 循环缓存<br>
+    │   ├── 05-queue            // 队列<br>
+    │   ├── 06-route_module     // 数据路由架构<br>
+    │   ├── 07-finite_state_machine // 状态机架构<br>
+    │   ├── 08-file_read_write      // 文件读写<br>
+    │   ├── 09-tcpip_socket         // 网络socket编程<br>
+    │   └── 10-serial           // 串口通讯<br>
+    │   ......<br>
     ├── 2_makefileBuild  // 直接使用makefile工具编码时的输出目录<br>
     ├── 3_cmakeBuild     // 使用cmake编译时的输出目录<br>
     ├── 4_automakeBuild  // 使用automake编译时的输出目录（里面有一份automake demo）<br>
@@ -37,5 +47,5 @@
     ├── main.c           // 整个工程的入口<br>
     ├── Makefile         // 直接使用makefile编码时的配置文件<br>
     ├── README.md        // 整个工程的说明文档<br>
-    └── vimrc<br>
+    └── vimrc            // vi编辑器的配置文件示例<br>
 </p>
