@@ -7,8 +7,6 @@
 #include "route.h"
 
 #define MODULES_COUNT 4
-#define ECOMM       (-1)
-#define pr_err printf
 
 typedef int (*FUNC)(void);
 typedef struct {
@@ -30,14 +28,16 @@ int main()
     int i;
     int ret;
 
+pr_err("%s enter", __func__);
+
     /** 初始化 */
     for (i = 0; i < MODULES_COUNT; i++) {
-        ret = ECOMM;
-        if (modules[i].init)
+        if (modules[i].init) {
             ret = modules[i].init();
-        if (ret) {
-            pr_err("Module[%d]%s init error!\n", i, modules[i].name);
-            return ECOMM;
+            if (ret) {
+                pr_err("Module[%d]%s init error!", i, modules[i].name);
+                return ret;
+            }
         }
     }
 
