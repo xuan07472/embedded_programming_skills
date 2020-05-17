@@ -20,7 +20,7 @@ MODULE_T modules[MODULES_COUNT] = {
     {"模块1", module1_init, module1_run, module1_exit},
     {"模块2", module2_init, module2_run, module2_exit},
     {"模块3", module3_init, module3_run, module3_exit},
-    {"路由模块", route_init, route_run, route_exit}
+    {"路由模块", route_init, NULL, route_exit}
 };
 
 int main()
