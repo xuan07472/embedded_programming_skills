@@ -22,9 +22,9 @@ CC := gcc
 
 ## 文件夹名
 SRCDIR := 1_src
-MODULE1DIR := 1-c_comments
-MODULE2DIR := 2-print_control
-MODULE3DIR := 3-console_menu
+MODULE1DIR := 01-c_comments
+MODULE2DIR := 02-print_control
+MODULE3DIR := 03-console_menu
 OBJDIR := 2_makefileBuild
 BINDIR := 5_release
 
