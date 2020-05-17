@@ -1,4 +1,5 @@
 /** Copied from linux code */
+/** 这里只是用来参考，没有实际使用，错误号是直接用的linux自带的errno.h文件 */
 
 #ifndef MERRNO_H
 #define MERRNO_H
