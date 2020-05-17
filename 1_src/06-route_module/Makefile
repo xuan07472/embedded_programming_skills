@@ -1,2 +1,2 @@
 all	:
-	gcc -o demo main.c module1.c module2.c module3.c route.c route_table.c
+	gcc -g -o demo main.c module1.c module2.c module3.c route.c route_table.c

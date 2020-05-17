@@ -6,7 +6,6 @@
 int route_init(void);
 int route_run(void);
 int route_exit(void);
-int route_send(int src, int dst, char *buf, int len);
 int route_recv(int src, int dst, char *buf, int len);
 int route_register(ROUTE_ITEM *route_item);
 
