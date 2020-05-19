@@ -3,7 +3,6 @@
 * Purpose      : Answer the question of https://leetcode.com/problems/relative-ranks/description/
 * Author       : ZhangJing
 * Time         : 2018-02-11
-
 *******************************************************************************/
 
 /************************** Include header file *******************************/
