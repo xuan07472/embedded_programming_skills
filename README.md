@@ -1,3 +1,5 @@
+配套哔哩哔哩视频主页：[才鲸嵌入式](https://space.bilibili.com/106424039) <br>
+
 **项目说明**
 [《项目启动说明书》](https://gitee.com/langcai1943/embedded_programming_skills/blob/develop/0_doc/00-项目管理/01-项目启动说明书.md)
 
