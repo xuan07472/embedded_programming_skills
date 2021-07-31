@@ -37,18 +37,17 @@
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 
 /*================================== 宏定义 ==================================*/
+#define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default file format UTF-8 */
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
-//#	define DEFAULT_FILE_NAME L"弹幕-正式版.txt" /** 双字节宽字符(Windows默认 GB2312) */
-#	define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default UTF-8 */
-//static const wchar_t *m_filename;
-//#	define DEFAULT_FILE_NAME "aaa.txt" /** 双字节宽字符(Windows默认 GB2312) */
-static const char *m_filename;
+#	define DST_FORMAT "GB2312"
+#	define SRC_FORMAT "UTF-8" // ye you keneng shi gb2312, yong notepadd++dakaiwenyouxiajiaotishidewenjianbianma
 #elif defined(__linux__)
-#	define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default UTF-8 */
-static const char *m_filename;
+#	define DST_FORMAT "UTF-8"
+#	define SRC_FORMAT "UTF-8"
 #elif defined(__APPLE__)
 #else
 #endif
+
 #define err_no (-1)	/** 定义默认错误码 */
 
 /**
@@ -81,6 +80,7 @@ static const char *m_filename;
 
 /*================================= 全局变量 =================================*/
 static int readfile_and_print(const char *file);
+static const char *m_filename;
 
 /*================================= 接口函数 =================================*/
 /**
@@ -101,7 +101,7 @@ int main(int argc, void *argv[])
 	iconv_t cd;
 	//cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312, UNICODE is open fail */
 	//cd = iconv_open("UTF-8", "UTF-8"); /** frome UTF-8 to GBK2312 */
-	cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
+	cd = iconv_open(SRC_FORMAT, DST_FORMAT); /** frome UTF-8 to GBK2312 */
 	if ((iconv_t)-1 == cd) {
       		//perror ("iconv_open()");
 		print(ERROR, LOG, "line:%d iconv_open() open fail! maybe format name illegal\n", __LINE__);
