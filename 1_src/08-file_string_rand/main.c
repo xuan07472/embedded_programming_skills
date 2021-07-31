@@ -26,24 +26,35 @@
  ******************************************************************************/
 
 /*================================== 头文件 ==================================*/
-#include <stdio.h>
+#include <stdio.h>	// printf()
+#include <unistd.h>	// access()
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 
 /*================================== 宏定义 ==================================*/
+#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#elif defined(__linux__)
+#elif defined(__APPLE__)
+#else
+#endif
 #define DEFAULT_FILE_NAME "弹幕-正式版.txt"
+#define errno (-1)	/** 定义默认错误码 */
 
 /**
  * @brief	重定义输出级别控制
  * @details	- ...和__VA_ARGS__一起实现宏定义函数的调用
  * 		- #和##实现宏定义函数的变量名转成字符串，和变量名拼接并转字符串；
  *		- printf第一个参数可以用多个"" ""拼起来作为一个参数，高级语言也有类似用法；
+ *		- 用do{}while(0);包起来可以用在if else等以为后续只有一样代码时不加{}大括号
+ *		  的情况，不加会有bug
  * @param[in]	level	输出级别
  * @param[in]	pure	输出时是否自动加上额外前缀信息
  */
-#define DETAIL	4
-#define DEBUG	3
-#define INFO	2
+#define DETAIL	6
+#define DEBUG	5
+#define INFO	4
+#define WARN	3
+#define ERROR	2
 #define RELEASE	1
 #define NOPRINT	0
 #define LOG  1
@@ -62,12 +73,34 @@ static int readfile_and_print(const char *file);
 static const char *m_filename;
 
 /*================================= 接口函数 =================================*/
+/**
+ * @brief	主函数入口
+ * @details	- 用户使用方法：
+ * 		- 处理默认文件 (Linux命令行)./demo
+ * 		  或者(windows cmd命令提示符)demo.exe或者双击应用程序
+ * 		- 处理用户自定义文件 (Linux命令行)./demo yourfilename
+ * 		  或者(window cmd命令提示符)demo.exe youfilename
+ *
+ * @param[in]	argc	参数个数+1
+ * @param[in]	argv	参数字符串指针数据，第一个参数是默认应用程序路径，从第二个
+ *			参数开始才是用户参数
+ */
 int main(int argc, void *argv[])
 {
 	m_filename = DEFAULT_FILE_NAME;
-	
-	if (argc > 1) { /** 参数1默认是应用程序路径，参数2开始才是用户数据 */
-		print(DEBUG, PURE, "str: %s\n", argv[1]);
+
+	/* 1. 如果用户输入了自定义文件，则处理 */
+	if (argc > 1) { // 第1个参数默认是应用程序路径，参数2开始才是用户数据
+		m_filename = argv[1];
+		print(DEBUG, LOG, "user input filename: %s\n", argv[1]);
+	}
+
+	/* 2. 判断文件存在并可读 */
+	if (access(m_filename, R_OK) == 0) {
+		print(DEBUG, LOG, "valid user filename: %s\n", m_filename);
+		return errno;
+	} else {
+		print(ERROR, LOG, "illegal user filename: %s!\n", m_filename);
 	}
 
 	readfile_and_print(m_filename);
