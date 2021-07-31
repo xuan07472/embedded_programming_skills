@@ -29,7 +29,7 @@
 #include <stdio.h>	// printf()打印
 #include <unistd.h>	// access()判断文件可访问
 #include <wchar.h>	// L"中文字符串" 双字节宽字符(并不直接就是GB2312或者Unicode)
-#include <iconv.h>	// iconv()中文编码转换
+#include <iconv.h>	// iconv()中文编码转换，可能要手动下载并安装libiconv动态库
 #include <stdlib.h>	// malloc() free() memcpy() memset()内存操作
 #include <string.h>	// strlen()字符串操作
 #include <errno.h>	// 返回的错误码，或者直接打印errno变量查看系统函数出错信息
@@ -95,31 +95,32 @@ static int readfile_and_print(const char *file);
  * @param[in]	argv	参数字符串指针数据，第一个参数是默认应用程序路径，从第二个
  *			参数开始才是用户参数
  */
+#if 1
 int main(int argc, void *argv[])
 {
 	iconv_t cd;
 	//cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
-	cd = iconv_open("ASCII", "ASCII"); /** frome UTF-8 to GBK2312 */
+	cd = iconv_open("ASCII", "UTF-8"); /** frome UTF-8 to GBK2312 */
 	if ((iconv_t)-1 == cd) {
-		print(ERROR, LOG, "iconv_open() open fail! maybe format name is illegal\n");
+		print(ERROR, LOG, "line:%d iconv_open() open fail! maybe format name illegal\n", __LINE__);
 		return err_no;
 	}
 	char *istr = malloc(64);
 	memset(istr, 0, 64);
-	memcpy(istr, "aaaaaaaaaa", 10);
+	memcpy(istr, "aaaaaaaaaaaa", 12);
+	size_t ilen = 2;//strlen(istr);
 	char *ostr = malloc(64);
-	memset(ostr, 0, 64);
-	size_t ilen = strlen(istr);
 	printf("ilen:%d\n",ilen);
-	size_t olen;
+	memset(ostr, 0, 64);
+	size_t olen = 64;
 	errno=0;
 	size_t ret = iconv (cd, &istr, &ilen, &ostr, &olen);
-	printf("errno:%d\n",errno);
 	printf("olen:%d, iconv ret:%llx\n",olen, ret);
-	printf("i====%s, len:%d\n", istr,ilen);
+	printf("errno:%d\n",errno);
+	printf("idata%s, (len:%d)\n", istr,ilen);
 	for(int i=0;i<ilen;i++)
 		printf("%x ", istr[i]);
-	printf("o====%s\n", ostr);
+	printf("odata%s, (olen:%d)\n", ostr, olen);
 	for(int i=0;i<ilen;i++)
 		printf("%x ", ostr[i]);
 	printf("~~~");
@@ -143,6 +144,28 @@ int main(int argc, void *argv[])
 
 	readfile_and_print(m_filename);
 }
+#endif
+
+#if 0
+int main(int argc, char *argv[])
+{
+    char src[] = "abcčde";
+    char dst[100];
+    size_t srclen = 6;
+    size_t dstlen = 12;
+
+    fprintf(stderr,"in: %s\n",src);
+
+    char * pIn = src;
+    char * pOut = ( char*)dst;
+
+    iconv_t conv = iconv_open("UTF-8","CP1250");
+    iconv(conv, &pIn, &srclen, &pOut, &dstlen);
+    iconv_close(conv);
+
+    fprintf(stderr,"out: %s\n",dst);
+}
+#endif
 
 /*================================= 接口函数 =================================*/
 static int readfile_and_print(const char *filename)
