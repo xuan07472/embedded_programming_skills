@@ -81,7 +81,7 @@
 			} while (0);
 
 /*================================= 全局变量 =================================*/
-static int readfile_and_print(const char *file);
+static int dump_file(const char *file);
 
 /*================================= 接口函数 =================================*/
 /**
@@ -120,38 +120,19 @@ int main(int argc, void *argv[])
 	memcpy(iname, filename, strlen(filename));
 	size_t ilen = strlen(filename);
 	char *oname = malloc(strlen(filename) * 8);
-	printf("origin ilen:%d\n",ilen);
 	memset(oname, 0, strlen(filename) * 8);
 	size_t olen = strlen(filename) * 8;
-	errno=0;
-	printf("@@@@origin idata:");
-	for(int i=0;i<ilen;i++)
-		printf("%x ", iname[i]);
-	printf("@@@@\n");
-	char *srcstr = iname; /** 因为iconv会改变原指针的地址值，所以要保留原指针 */
+	print(DEBUG, LOG, "the used file name: %s\n", iname);
+
+	/* 3. 对文件名进行中文格式转码 */
+	char *srcstr = iname; /** 因为iconv会改变原指针的地址值(和输入输出长度值)，所以要保留原指针 */
 	char *dststr = oname;
 	size_t rtn = iconv (cd, &srcstr, &ilen, &dststr, &olen);
-	printf("out olen:%d, iconv ret:%d!!!!!!!!\n",olen, rtn);
-	printf("iconv errno:%d\n\n",errno);
-
-	printf("origen idata:%s, (len:%d)\n", iname,ilen);
-	printf(">>>not parsed idata:");
-	for(int i=0;i<ilen;i++)
-		printf(".%x ", iname[i]);
-	printf("----\n");
-	printf("odata%s, (olen:%d)\n", oname, olen);
-	for(int i=0;i<olen;i++)
-		printf(".%x ", oname[i]);
-	printf("\n<<<<\n\n");
-
-
-	printf("====\n");
-	for(int i=0;i<strlen(filename)+1;i++)
-		printf("_%x ", iname[i]);
-	printf("\n\n~~~~\n");
-	for(int i=0;i<strlen(filename) * 8;i++)
-		printf("_%x ", oname[i]);
-	printf("\n");
+	if (rtn < 0) {
+		print(ERROR, LOG, "iconv() chinese string format convert fail!\n");
+		goto exit;
+	}
+	print(DETAIL, LOG, "iconv out[%d]: %s\n", olen, oname);
 
 	/* 2. 判断文件存在并可读 */
 	if (access(oname, R_OK) == 0) {
@@ -162,9 +143,10 @@ int main(int argc, void *argv[])
 		goto exit;
 	}
 
-	readfile_and_print(oname);
+	if (CUR_PRINT_LEVEL >= DEBUG)
+		dump_file(oname);
 
-	/* 释放资源 */
+	/* 3. 释放资源并退出 */
 exit:
 	/* 退出文件转码库 */
 	if ((iconv_t)-1 == cd && NULL != cd) {
@@ -185,9 +167,9 @@ exit:
 }
 
 /*================================= 接口函数 =================================*/
-static int readfile_and_print(const char *filename)
+static int dump_file(const char *filename)
 {
-
+	//TODO:
 }
 
 /*================================= 文件结尾 =================================*/
