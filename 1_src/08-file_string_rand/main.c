@@ -100,23 +100,23 @@ int main(int argc, void *argv[])
 {
 	iconv_t cd;
 	//cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
-	cd = iconv_open("ASCII", "UTF-8"); /** frome UTF-8 to GBK2312 */
+	cd = iconv_open("UNICODE", "UTF-8"); /** frome UTF-8 to GBK2312 */
+	//cd = iconv_open("ASCII", "UTF-8"); /** frome UTF-8 to GBK2312 */
 	if ((iconv_t)-1 == cd) {
 		print(ERROR, LOG, "line:%d iconv_open() open fail! maybe format name illegal\n", __LINE__);
 		return err_no;
 	}
-	char *istr = malloc(64);
-	memset(istr, 0, 64);
-	memcpy(istr, "aaaaaaaaaaaa", 12);
-	size_t ilen = 2;//strlen(istr);
-	char *ostr = malloc(64);
+	char *istr = malloc(strlen(DEFAULT_FILE_NAME) + 1);
+	memcpy(istr, DEFAULT_FILE_NAME, strlen(DEFAULT_FILE_NAME));
+	size_t ilen = strlen(DEFAULT_FILE_NAME);
+	char *ostr = malloc(strlen(DEFAULT_FILE_NAME) * 2);
 	printf("ilen:%d\n",ilen);
-	memset(ostr, 0, 64);
-	size_t olen = 64;
+	memset(ostr, 0, strlen(DEFAULT_FILE_NAME) * 2);
+	size_t olen = strlen(DEFAULT_FILE_NAME) * 2;
 	errno=0;
 	size_t ret = iconv (cd, &istr, &ilen, &ostr, &olen);
 	printf("olen:%d, iconv ret:%llx\n",olen, ret);
-	printf("errno:%d\n",errno);
+	printf("iconv errno:%d\n",errno);
 	printf("idata%s, (len:%d)\n", istr,ilen);
 	for(int i=0;i<ilen;i++)
 		printf("%x ", istr[i]);
@@ -135,7 +135,8 @@ int main(int argc, void *argv[])
 	}
 
 	/* 2. 判断文件存在并可读 */
-	if (access(m_filename, R_OK) == 0) {
+	//if (access(m_filename, R_OK) == 0) {
+	if (access(ostr, R_OK) == 0) {
 		print(DEBUG, LOG, "yes, valid filename: %s\n", m_filename);
 		return err_no;
 	} else {
