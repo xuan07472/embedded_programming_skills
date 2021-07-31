@@ -30,7 +30,9 @@
 #include <unistd.h>	// access()判断文件可访问
 #include <wchar.h>	// L"中文字符串" 双字节宽字符(并不直接就是GB2312或者Unicode)
 #include <iconv.h>	// iconv()中文编码转换
-#include <stdlib.h>	// malloc() free()
+#include <stdlib.h>	// malloc() free() memcpy() memset()内存操作
+#include <string.h>	// strlen()字符串操作
+#include <errno.h>	// 返回的错误码，或者直接打印errno变量查看系统函数出错信息
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 
