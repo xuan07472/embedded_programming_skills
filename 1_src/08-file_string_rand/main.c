@@ -100,8 +100,8 @@ int main(int argc, void *argv[])
 {
 	iconv_t cd;
 	//cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
-	cd = iconv_open("UNICODE", "UTF-8"); /** frome UTF-8 to GBK2312 */
-	//cd = iconv_open("ASCII", "UTF-8"); /** frome UTF-8 to GBK2312 */
+	//cd = iconv_open("UTF-8", "UTF-8"); /** frome UTF-8 to GBK2312 */
+	cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
 	if ((iconv_t)-1 == cd) {
 		print(ERROR, LOG, "line:%d iconv_open() open fail! maybe format name illegal\n", __LINE__);
 		return err_no;
@@ -109,21 +109,28 @@ int main(int argc, void *argv[])
 	char *istr = malloc(strlen(DEFAULT_FILE_NAME) + 1);
 	memcpy(istr, DEFAULT_FILE_NAME, strlen(DEFAULT_FILE_NAME));
 	size_t ilen = strlen(DEFAULT_FILE_NAME);
-	char *ostr = malloc(strlen(DEFAULT_FILE_NAME) * 2);
-	printf("ilen:%d\n",ilen);
-	memset(ostr, 0, strlen(DEFAULT_FILE_NAME) * 2);
-	size_t olen = strlen(DEFAULT_FILE_NAME) * 2;
+	char *ostr = malloc(strlen(DEFAULT_FILE_NAME) * 8);
+	printf("origin ilen:%d\n",ilen);
+	memset(ostr, 0, strlen(DEFAULT_FILE_NAME) * 8);
+	size_t olen = strlen(DEFAULT_FILE_NAME) * 8;
 	errno=0;
-	size_t ret = iconv (cd, &istr, &ilen, &ostr, &olen);
-	printf("olen:%d, iconv ret:%llx\n",olen, ret);
-	printf("iconv errno:%d\n",errno);
-	printf("idata%s, (len:%d)\n", istr,ilen);
+	printf("@@@@origin idata:");
 	for(int i=0;i<ilen;i++)
 		printf("%x ", istr[i]);
-	printf("odata%s, (olen:%d)\n", ostr, olen);
+	printf("@@@@\n");
+	size_t ret = iconv (cd, &istr, &ilen, &ostr, &olen);
+	printf("out olen:%d, iconv ret:%d!!!!!!!!\n",olen, ret);
+	printf("iconv errno:%d\n\n",errno);
+
+	printf("origen idata:%s, (len:%d)\n", istr,ilen);
+	printf(">>>not parsed idata:");
 	for(int i=0;i<ilen;i++)
-		printf("%x ", ostr[i]);
-	printf("~~~");
+		printf(".%x ", istr[i]);
+	printf("----\n");
+	printf("odata%s, (olen:%d)\n", ostr, olen);
+	for(int i=0;i<olen;i++)
+		printf(".%x ", ostr[i]);
+	printf("\n<<<<\n\n");
 	iconv_close(cd);
 
 	m_filename = DEFAULT_FILE_NAME;
@@ -133,6 +140,14 @@ int main(int argc, void *argv[])
 		m_filename = argv[1];
 		print(DEBUG, LOG, "user input filename: %s\n", (char *)argv[1]);
 	}
+
+	printf("====\n");
+	for(int i=0;i<strlen(DEFAULT_FILE_NAME)+1;i++)
+		printf("_%x ", istr[i]);
+	printf("\n\n~~~~\n");
+	for(int i=0;i<strlen(DEFAULT_FILE_NAME) * 8;i++)
+		printf("_%x ", ostr[i]);
+	printf("\n");
 
 	/* 2. 判断文件存在并可读 */
 	//if (access(m_filename, R_OK) == 0) {
