@@ -30,6 +30,7 @@
 #include <unistd.h>	// access()判断文件可访问
 #include <wchar.h>	// L"中文字符串" 双字节宽字符(并不直接就是GB2312或者Unicode)
 #include <iconv.h>	// iconv()中文编码转换
+#include <stdlib.h>	// malloc() free()
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 
@@ -95,17 +96,30 @@ static int readfile_and_print(const char *file);
 int main(int argc, void *argv[])
 {
 	iconv_t cd;
-
-	printf("111");
-	cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
-	char istr1[64]="aaabbbccc";
-	char *istr = istr1;
-	char ostr1[64];
-	char *ostr = ostr1;
-	size_t ilen = 16;
+	//cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
+	cd = iconv_open("GB2312", "ASCII"); /** frome UTF-8 to GBK2312 */
+	if ((iconv_t)-1 == cd) {
+		print(ERROR, LOG, "iconv_open() open fail! maybe format name is illegal\n");
+		return err_no;
+	}
+	char *istr = malloc(64);
+	memset(istr, 0, 64);
+	memcpy(istr, "aaaaaaaaaa", 10);
+	char *ostr = malloc(64);
+	memset(ostr, 0, 64);
+	size_t ilen = strlen(istr);
+	printf("ilen:%d\n",ilen);
 	size_t olen;
-	int ret = iconv (cd, &istr, &ilen, &ostr, &olen);
-	printf("====%s\n", ostr);
+	errno=0;
+	size_t ret = iconv (cd, &istr, &ilen, &ostr, &olen);
+	printf("errno:%d\n",errno);
+	printf("olen:%d, iconv ret:%llx\n",olen, ret);
+	printf("i====%s, len:%d\n", istr,ilen);
+	for(int i=0;i<ilen;i++)
+		printf("%x ", istr[i]);
+	printf("o====%s\n", ostr);
+	for(int i=0;i<ilen;i++)
+		printf("%x ", ostr[i]);
 	printf("~~~");
 	iconv_close(cd);
 
