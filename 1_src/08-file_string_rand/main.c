@@ -26,19 +26,27 @@
  ******************************************************************************/
 
 /*================================== 头文件 ==================================*/
-#include <stdio.h>	// printf()
-#include <unistd.h>	// access()
+#include <stdio.h>	// printf()打印
+#include <unistd.h>	// access()判断文件可访问
+#include <wchar.h>	// L"中文字符串" 双字节宽字符(并不直接就是GB2312或者Unicode)
+#include <iconv.h>	// iconv()中文编码转换
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 
 /*================================== 宏定义 ==================================*/
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+//#	define DEFAULT_FILE_NAME L"弹幕-正式版.txt" /** 双字节宽字符(Windows默认 GB2312) */
+#	define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default UTF-8 */
+//static const wchar_t *m_filename;
+//#	define DEFAULT_FILE_NAME "aaa.txt" /** 双字节宽字符(Windows默认 GB2312) */
+static const char *m_filename;
 #elif defined(__linux__)
+#	define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default UTF-8 */
+static const char *m_filename;
 #elif defined(__APPLE__)
 #else
 #endif
-#define DEFAULT_FILE_NAME "弹幕-正式版.txt"
-#define errno (-1)	/** 定义默认错误码 */
+#define err_no (-1)	/** 定义默认错误码 */
 
 /**
  * @brief	重定义输出级别控制
@@ -70,7 +78,6 @@
 
 /*================================= 全局变量 =================================*/
 static int readfile_and_print(const char *file);
-static const char *m_filename;
 
 /*================================= 接口函数 =================================*/
 /**
@@ -87,20 +94,35 @@ static const char *m_filename;
  */
 int main(int argc, void *argv[])
 {
+	iconv_t cd;
+
+	printf("111");
+	cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
+	char istr1[64]="aaabbbccc";
+	char *istr = istr1;
+	char ostr1[64];
+	char *ostr = ostr1;
+	size_t ilen = 16;
+	size_t olen;
+	int ret = iconv (cd, &istr, &ilen, &ostr, &olen);
+	printf("====%s\n", ostr);
+	printf("~~~");
+	iconv_close(cd);
+
 	m_filename = DEFAULT_FILE_NAME;
 
 	/* 1. 如果用户输入了自定义文件，则处理 */
 	if (argc > 1) { // 第1个参数默认是应用程序路径，参数2开始才是用户数据
 		m_filename = argv[1];
-		print(DEBUG, LOG, "user input filename: %s\n", argv[1]);
+		print(DEBUG, LOG, "user input filename: %s\n", (char *)argv[1]);
 	}
 
 	/* 2. 判断文件存在并可读 */
 	if (access(m_filename, R_OK) == 0) {
-		print(DEBUG, LOG, "valid user filename: %s\n", m_filename);
-		return errno;
+		print(DEBUG, LOG, "yes, valid filename: %s\n", m_filename);
+		return err_no;
 	} else {
-		print(ERROR, LOG, "illegal user filename: %s!\n", m_filename);
+		print(ERROR, LOG, "illegal filename: %s! maybe format(such as UTF8) NOT match current OS.\n", m_filename);
 	}
 
 	readfile_and_print(m_filename);
