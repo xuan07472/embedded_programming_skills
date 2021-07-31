@@ -95,7 +95,7 @@ static int readfile_and_print(const char *file);
  * @param[in]	argv	参数字符串指针数据，第一个参数是默认应用程序路径，从第二个
  *			参数开始才是用户参数
  */
-#if 0
+#if 1
 int main(int argc, void *argv[])
 {
 	iconv_t cd;
@@ -119,7 +119,9 @@ int main(int argc, void *argv[])
 	for(int i=0;i<ilen;i++)
 		printf("%x ", istr[i]);
 	printf("@@@@\n");
-	size_t ret = iconv (cd, &istr, &ilen, &ostr, &olen);
+	char *srcstr = istr; /** 因为iconv会改变原指针的地址值，所以要保留原指针 */
+	char *dststr = ostr;
+	size_t ret = iconv (cd, &srcstr, &ilen, &dststr, &olen);
 	printf("out olen:%d, iconv ret:%d!!!!!!!!\n",olen, ret);
 	printf("iconv errno:%d\n\n",errno);
 
@@ -153,7 +155,7 @@ int main(int argc, void *argv[])
 	/* 2. 判断文件存在并可读 */
 	//if (access(m_filename, R_OK) == 0) {
 	if (access(ostr, R_OK) == 0) {
-		print(DEBUG, LOG, "yes, valid filename: %s\n", m_filename);
+		print(DEBUG, LOG, "yes, valid filename: %s\n", ostr);
 		return err_no;
 	} else {
 		print(ERROR, LOG, "illegal filename: %s! maybe format(such as UTF8) NOT match current OS.\n", m_filename);
@@ -163,7 +165,7 @@ int main(int argc, void *argv[])
 }
 #endif
 
-#if 1
+#if 0
 int main(int argc, char **argv)
 {
   /* 目的编码, TRANSLIT：遇到无法转换的字符就找相近字符替换
