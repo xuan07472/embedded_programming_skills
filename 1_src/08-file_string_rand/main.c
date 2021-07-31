@@ -97,7 +97,7 @@ int main(int argc, void *argv[])
 {
 	iconv_t cd;
 	//cd = iconv_open("GB2312", "UTF-8"); /** frome UTF-8 to GBK2312 */
-	cd = iconv_open("GB2312", "ASCII"); /** frome UTF-8 to GBK2312 */
+	cd = iconv_open("ASCII", "ASCII"); /** frome UTF-8 to GBK2312 */
 	if ((iconv_t)-1 == cd) {
 		print(ERROR, LOG, "iconv_open() open fail! maybe format name is illegal\n");
 		return err_no;
