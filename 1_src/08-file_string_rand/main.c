@@ -35,6 +35,7 @@
 #include <stdlib.h>	// malloc() free() memcpy() memset()内存操作
 #include <string.h>	// strlen()等字符串操作
 #include <errno.h>	// 各种错误码宏定义，还可以直接打印errno变量查看系统函数出错信息
+#include <regex.h>	// 正则表达式，需要手动下载编译并安装
 
 /*================================== 宏定义 ==================================*/
 #define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default file format UTF-8 */
