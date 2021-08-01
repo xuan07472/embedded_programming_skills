@@ -36,8 +36,6 @@
 #include <string.h>	// strlen()等字符串操作
 #include <errno.h>	// 各种错误码宏定义，还可以直接打印errno变量查看系统函数出错信息
 
-/*==================== 类型定义（struct、 enum 和 typedef） ==================*/
-
 /*================================== 宏定义 ==================================*/
 #define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default file format UTF-8 */
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
@@ -72,6 +70,7 @@
 #define LOG  1
 #define PURE 0
 #define CUR_PRINT_LEVEL DEBUG /** 定义输出级别 */
+//#define CUR_PRINT_LEVEL DETAIL /** 定义输出级别 */
 #define print(level, pure, ...)	do { \
 				if ((level) <= CUR_PRINT_LEVEL && (level) != NOPRINT) { \
 					if (pure == LOG) \
@@ -80,8 +79,24 @@
 				} \
 			} while (0);
 
+#define KEYVALUE_MAXLEN	64
+
+/*==================== 类型定义（struct、 enum 和 typedef） ==================*/
+/**
+ * @brief	键值对结构体
+ */
+typedef struct _KEY_VALUE {
+	char key[KEYVALUE_MAXLEN];
+	char value[KEYVALUE_MAXLEN];
+	int keylen;
+	int valuelen;
+} KEY_VALUE;
+
+
 /*================================= 全局变量 =================================*/
-static int dump_file(const char *file);
+static int file_dump(const char *file);
+static int file_parse(const char *file);
+static int string_parse(char *fdata, int flen);
 
 /*================================= 接口函数 =================================*/
 /**
@@ -110,6 +125,7 @@ int main(int argc, void *argv[])
 	}
 
 	char *filename = DEFAULT_FILE_NAME;
+
 	/* 2. 如果用户输入了自定义文件，则处理 */
 	if (argc > 1) { // 第1个参数默认是应用程序路径，参数2开始才是用户数据
 		filename = argv[1];
@@ -143,8 +159,10 @@ int main(int argc, void *argv[])
 		goto exit;
 	}
 
-	if (CUR_PRINT_LEVEL >= DEBUG)
-		dump_file(oname);
+	if (CUR_PRINT_LEVEL >= DETAIL)
+		file_dump(oname);
+
+	file_parse(oname);
 
 	/* 3. 释放资源并退出 */
 exit:
@@ -167,9 +185,105 @@ exit:
 }
 
 /*================================= 接口函数 =================================*/
-static int dump_file(const char *filename)
+
+/**
+ * @brief	读取文件并进行抽奖
+ * @param[in]	filename	文件名
+ */
+static int file_parse(const char *filename)
 {
-	//TODO:
+	FILE *fp;
+	long filelen;
+
+	/* 1. 打开文件 */
+	fp = fopen(filename, "r+");
+	if (NULL == fp) {
+		print(ERROR, LOG, "fopen() fail!\n");
+		return err_no;
+	}
+
+	/* 2. 获取文件长度 */
+	fseek(fp, 0, SEEK_END); // 先跳到文件末尾
+	filelen = ftell(fp);	// 获取文件长度
+	rewind(fp);		// 文件指针重新跳转到开头
+	print(INFO, LOG, "file len: %d\n", filelen);
+
+	/* 3. 读取文件 */
+	char *filedata = malloc(filelen + 1);
+	fread(filedata, 1, filelen, fp);	// 读取全部文件内容
+	filedata[filelen] = '\0';		// 手动加上字符串结尾
+	fclose(fp);
+
+	/* 4. 处理文件 */
+	string_parse(filedata, filelen);
+
+	return 0;
+}
+
+/**
+ * @brief	处理字符串，从中找出符合条件的字符串组
+ */
+int string_parse(char *fdata, int flen)
+{
+	char *keystr = "粉丝";
+	char *substr;	// 临时的符合条件的子字符串所在指针
+	int subnum = 0;	// 被找到的总数
+	
+
+	if (!fdata || !flen) {
+		print(ERROR, LOG, "file data pointer NULL!\n");
+		return err_no;
+	}
+
+	substr = fdata;
+	char *tmpptr;
+	do {
+		tmpptr = substr + strlen(keystr);
+		substr = strstr(tmpptr, keystr); // 返回字符串中首次出现子串的地址
+		if (NULL == substr) {
+			if (!subnum)
+				print(DEBUG, LOG, "can't find '粉丝' key value in the file, please check!\n");
+
+			break;
+		} else {
+			subnum++;
+		}
+	} while (substr != NULL);
+	print(INFO, LOG, "key-value num: %d\n", subnum);
+
+	//KEY_VALUE
+	return 0;
+}
+
+/**
+ * @brief	读取文件并打印文件内容
+ * @param[in]	filename	文件名
+ */
+static int file_dump(const char *filename)
+{
+	FILE *fp;
+	long filelen;
+
+	/* 1. 打开文件 */
+	fp = fopen(filename, "r+");
+	if (NULL == fp) {
+		print(ERROR, LOG, "fopen() fail!\n");
+		return err_no;
+	}
+
+	/* 2. 获取文件长度 */
+	fseek(fp, 0, SEEK_END); // 先跳到文件末尾
+	filelen = ftell(fp);	// 获取文件长度
+	rewind(fp);		// 文件指针重新跳转到开头
+	print(DEBUG, LOG, "file len: %d\n", filelen);
+
+	char *filedata = malloc(filelen);
+	fread(filedata, 1, filelen, fp); // 读取全部文件内容
+	fclose(fp);
+
+	print(DEBUG, LOG, "filedata:\n%s\n", filedata);
+
+	return 0;
 }
 
 /*================================= 文件结尾 =================================*/
