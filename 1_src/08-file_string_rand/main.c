@@ -98,6 +98,7 @@ typedef struct _KEY_VALUE {
 static int file_dump(const char *file);
 static int file_parse(const char *file);
 static int string_parse(char *fdata, int flen);
+static int regex_parse(char *fdata, int flen);
 
 /*================================= 接口函数 =================================*/
 /**
@@ -165,8 +166,6 @@ int main(int argc, void *argv[])
 
 	/* 3. 处理文件并抽奖 */
 	file_parse(oname);
-	regex_parse(oname); // 此函数仅在Ubuntu下验证，之前的部分在安装git后留下的MINGW64可编译并运行
-
 
 	/* 4. 释放资源并退出 */
 exit:
@@ -192,6 +191,7 @@ exit:
 
 /**
  * @brief	读取文件并进行抽奖
+ *
  * @param[in]	filename	文件名
  */
 static int file_parse(const char *filename)
@@ -210,7 +210,7 @@ static int file_parse(const char *filename)
 	fseek(fp, 0, SEEK_END); // 先跳到文件末尾
 	filelen = ftell(fp);	// 获取文件长度
 	rewind(fp);		// 文件指针重新跳转到开头
-	print(INFO, LOG, "file len: %d\n", filelen);
+	print(INFO, LOG, "file len: %ld\n", filelen);
 
 	/* 3. 读取文件 */
 	char *filedata = malloc(filelen + 1);
@@ -220,12 +220,16 @@ static int file_parse(const char *filename)
 
 	/* 4. 处理文件 */
 	string_parse(filedata, filelen);
+	regex_parse(filedata, filelen); // 此函数仅在Ubuntu下验证，之前的部分在安装git后留下的MINGW64可编译并运行
 
 	return 0;
 }
 
 /**
  * @brief	处理字符串，从中找出符合条件的字符串组
+ * 
+ * @param[in]	fdata	file data
+ * @param[in]	flen	file data length
  */
 int string_parse(char *fdata, int flen)
 {
@@ -260,6 +264,7 @@ int string_parse(char *fdata, int flen)
 
 /**
  * @brief	读取文件并打印文件内容
+ *
  * @param[in]	filename	文件名
  */
 static int file_dump(const char *filename)
@@ -278,7 +283,7 @@ static int file_dump(const char *filename)
 	fseek(fp, 0, SEEK_END); // 先跳到文件末尾
 	filelen = ftell(fp);	// 获取文件长度
 	rewind(fp);		// 文件指针重新跳转到开头
-	print(DEBUG, LOG, "file len: %d\n", filelen);
+	print(DEBUG, LOG, "file len: %ld\n", filelen);
 
 	char *filedata = malloc(filelen);
 	fread(filedata, 1, filelen, fp); // 读取全部文件内容
@@ -287,6 +292,48 @@ static int file_dump(const char *filename)
 	print(DEBUG, LOG, "filedata:\n%s\n", filedata);
 
 	return 0;
+}
+
+/**
+ * @brief	处理字符串，从中找出符合条件的字符串组
+ * 
+ * @param[in]	fdata	file data
+ * @param[in]	flen	file data length
+ */
+int regex_parse(char *fdata, int flen)
+{
+	main2();
+	return 0;
+}
+
+int main2 (void)
+{
+  char ebuff[256];
+  int ret;
+  int cflags;
+  regex_t reg;
+  cflags = REG_EXTENDED | REG_ICASE | REG_NOSUB;
+  char *test_str = "Hello World";
+  char *reg_str = "H.*";
+  ret = regcomp(&reg, reg_str, cflags);
+  if (ret)
+  {  
+    regerror(ret, &reg, ebuff, 256);
+    fprintf(stderr, "%s\n", ebuff);
+    goto end;
+  }  
+  ret = regexec(&reg, test_str, 0, NULL, 0);
+  if (ret)
+  {
+    regerror(ret, &reg, ebuff, 256);
+    fprintf(stderr, "%s\n", ebuff);
+    goto end;
+  }  
+  regerror(ret, &reg, ebuff, 256);
+  fprintf(stderr, "result is:\n%s\n", ebuff);
+end:
+  regfree(&reg);
+  return 0;
 }
 
 /*================================= 文件结尾 =================================*/
