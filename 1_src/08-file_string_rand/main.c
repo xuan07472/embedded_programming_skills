@@ -163,9 +163,12 @@ int main(int argc, void *argv[])
 	if (CUR_PRINT_LEVEL >= DETAIL)
 		file_dump(oname);
 
+	/* 3. 处理文件并抽奖 */
 	file_parse(oname);
+	regex_parse(oname); // 此函数仅在Ubuntu下验证，之前的部分在安装git后留下的MINGW64可编译并运行
 
-	/* 3. 释放资源并退出 */
+
+	/* 4. 释放资源并退出 */
 exit:
 	/* 退出文件转码库 */
 	if ((iconv_t)-1 == cd && NULL != cd) {
@@ -252,7 +255,6 @@ int string_parse(char *fdata, int flen)
 	} while (substr != NULL);
 	print(INFO, LOG, "key-value num: %d\n", subnum);
 
-	//KEY_VALUE
 	return 0;
 }
 
