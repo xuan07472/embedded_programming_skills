@@ -302,29 +302,106 @@ static int file_dump(const char *filename)
  */
 int regex_parse(char *fdata, int flen)
 {
-	// UTF-8英文字符1个字节 0x00 ~ 0x7F
-	// UTF-8中文字符2~4个字节 第一个字节有几个bit1则占几个字节，后续的字节高两位也以10开头
+#define NAME_MAX_NUM 64
+#define TIME_STR_CHARSET "1234567890: -"
+	/**
+	 * UTF-8英文字符1个字节 0x00 ~ 0x7F
+	 * UTF-8中文字符2~4个字节 第一个字节有几个bit1则占几个字节，后续的字节高两位也以10开头
+	 */
+
 	char *ptr = fdata; // 拷贝地址进行处理，不修改原始地址
 	int totalchar = 0;
 	int totalline = 0;
-	char name[64] = {0};
+	char name[NAME_MAX_NUM];
+	char *substr;
+	char *namestr;
+
 	while (*ptr++ != '\0') {
 		totalchar++;
 		if (*ptr == '\n')
 			totalline++;
 	}
-	ptr = fdata;
 	print(DEBUG, LOG, "total character: %d\n", totalchar);
 	print(DEBUG, LOG, "total line: %d\n", totalline);
 
-	/** 找到特殊值\n\n一个空行和\n下一个换行之间的是用户名，（为什么找不到\r\n我也不清楚） */
-	printf("0: %p\n", ptr);
-	char *substr = strstr(ptr, "\n\n");
-	printf("1: %p, %d\n", substr, substr - ptr);
-	char *namestr = strstr(substr + 2, "\n");
-	printf("2: %p, %d\n", substr + 2, namestr - substr);
-	memcpy(name, substr + 2, namestr - substr - 2);
-	printf("name: %s\n", name);
+	/**
+	 * 空行后面的整行是用户名
+	 * 找到特殊值\n\n一个空行和\n下一个换行之间的是用户名，
+	 * （明明是Windows格式的换行格式，为什么找不到\r\n我也不清楚，可能Linux读文件时内部有替换）
+	 */
+	ptr = fdata;
+	substr = strstr(ptr, "\n\n"); // 找字符串第一次出现的位置
+	print(DEBUG, LOG, "names:")
+	while (substr > 0) {
+		namestr = strstr(substr + 2, "\n");
+		if (namestr > 0) {
+			if (namestr - substr - 2 >= NAME_MAX_NUM) {
+				print(ERROR, LOG, "name length too long!\n");
+				return err_no;
+			}
+			memcpy(name, substr + 2, namestr - substr - 2);
+			name[namestr - substr - 2] = '\0';
+			print(INFO, PURE, " %s |", name);
+		}
+		substr = strstr(namestr + 1, "\n\n");
+	}
+	print(DEBUG, PURE, "\n\n");
+
+
+	/**
+	 * 前一行和后一行都是时间，那么中间的就是弹幕内容
+	 * 前一行和后一行的所有字符都在[0-9]数字、 空格、-和:之间，那么中间的整行就是弹幕内容
+	 */
+	int pos;
+	char *starttime;
+	char *endtime;
+	ptr = fdata;
+	substr = strpbrk(ptr, TIME_STR_CHARSET); // 找字符集中的任意一个字符第一次出现的位置
+	//printf("substr: %p, %d\n", substr, substr - ptr);
+	print(DEBUG, LOG, "contents:")
+	while (substr > 0) {
+		pos = strspn(substr, TIME_STR_CHARSET);
+		//printf("time str len: %d\n", pos);
+		if (pos < 5) { // 如果符合条件的字符数目不够，没找到时间字符串
+			substr++;
+			substr = strpbrk(substr, TIME_STR_CHARSET);
+			if (substr <= 0) {
+				print(ERROR, LOG, "can't found time string\n");
+				break;
+			}
+			continue;
+		}
+		/* 已找到第一行时间字符串 */
+		starttime = substr + pos + 1; // 越过整个时间字符串和行结尾
+
+second_timestring_find_again:
+		substr = strpbrk(substr + pos + 1, TIME_STR_CHARSET);
+		if (substr <= 0) {
+			print(ERROR, LOG ,"second time string not found!\n");
+			break;
+		}
+		pos = strspn(substr, TIME_STR_CHARSET);
+		//printf("second time str len: %d\n", pos);
+		if (pos < 5) {
+			substr++;
+			goto second_timestring_find_again;
+		}
+		/* 已找到第二行时间字符串 */
+		endtime = substr - 1; // 回退用户弹幕后的换行符
+		if (endtime - starttime <= 0) {
+			print(ERROR, LOG, "contents length error: %d\n", endtime - starttime);
+			break;
+		}
+		memcpy(name, starttime, endtime - starttime);
+		name[endtime - starttime] = '\0';
+		print(INFO, PURE, " %s |", name);
+		//printf("\n");
+
+		endtime += pos;
+		substr = strpbrk(endtime, TIME_STR_CHARSET);
+	}
+	print(DEBUG, PURE, "\n\n");
+
 
 	return 0;
 }
