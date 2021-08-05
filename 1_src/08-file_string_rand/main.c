@@ -70,8 +70,8 @@
 #define NOPRINT	0
 #define LOG  1
 #define PURE 0
-#define CUR_PRINT_LEVEL DEBUG /** 定义输出级别 */
-//#define CUR_PRINT_LEVEL DETAIL /** 定义输出级别 */
+#define CUR_PRINT_LEVEL DEBUG /** 定义默认输出级别 */
+//#define CUR_PRINT_LEVEL DETAIL
 #define print(level, pure, ...)	do { \
 				if ((level) <= CUR_PRINT_LEVEL && (level) != NOPRINT) { \
 					if (pure == LOG) \
@@ -81,24 +81,48 @@
 			} while (0);
 
 #define KEYVALUE_MAXLEN	64
+#define TIME_STRING_LEN 19
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
+typedef enum {
+	FALSE = 0,
+	TRUE = 1
+} BOOL;
+
+/**
+ * @brief	键值枚举
+ */
+typedef enum _KEY {
+	NAME = 0,
+	CONTENT,
+	FOLLOWER
+} KEY;
+
 /**
  * @brief	键值对结构体
  */
 typedef struct _KEY_VALUE {
-	char key[KEYVALUE_MAXLEN];
+	KEY key;
 	char value[KEYVALUE_MAXLEN];
-	int keylen;
 	int valuelen;
 } KEY_VALUE;
 
+typedef struct _ITEM {
+	KEY_VALUE name;
+	KEY_VALUE content;
+	KEY_VALUE follower;
+	BOOL is_follower;
+	BOOL true_content;
+	BOOL win;
+} ITEM;
+
 
 /*================================= 全局变量 =================================*/
-static int file_dump(const char *file);
 static int file_parse(const char *file);
 static int string_parse(char *fdata, int flen);
-static int regex_parse(char *fdata, int flen);
+static int dump_file(const char *file);
+static int dump_item(char *fdata, int flen);
+static int dump_names_contents(char *fdata, int flen);
 
 /*================================= 接口函数 =================================*/
 /**
@@ -162,7 +186,7 @@ int main(int argc, void *argv[])
 	}
 
 	if (CUR_PRINT_LEVEL >= DETAIL)
-		file_dump(oname);
+		dump_file(oname);
 
 	/* 3. 处理文件并抽奖 */
 	file_parse(oname);
@@ -187,7 +211,7 @@ exit:
 	return 0;
 }
 
-/*================================= 接口函数 =================================*/
+/*================================= 私有函数 =================================*/
 
 /**
  * @brief	读取文件并进行抽奖
@@ -219,19 +243,57 @@ static int file_parse(const char *filename)
 	fclose(fp);
 
 	/* 4. 处理文件 */
-	string_parse(filedata, filelen);
-	regex_parse(filedata, filelen); // 此函数仅在Ubuntu下验证，之前的部分在安装git后留下的MINGW64可编译并运行
+	if (CUR_PRINT_LEVEL >= DETAIL)
+		dump_item(filedata, filelen);
+	if (CUR_PRINT_LEVEL >= DETAIL)
+		dump_names_contents(filedata, filelen);
+
+	string_parse(filedata, filelen); // 处理字符串并进行抽奖
+
+	return 0;
+}
+
+/**
+ * @brief	处理字符串，进行抽奖
+ * @details	获取用户名总数，获取用户名-是否粉丝-发言内容并打印，挑选粉丝+发言包含‘c/C语言’的用户，
+ * 		去重并打印，放入抽奖池，进行抽奖，打印抽奖结果
+ * 
+ * @param[in]	fdata	file data
+ * @param[in]	flen	file data length
+ */
+int string_parse(char *fdata, int flen)
+{
+	char *str = fdata;
+	ITEM *all_item = NULL;
+
+	/* 1. 获取用户总数，并打印 */
+
+	/* 2. 分配内存 */
+
+	/* 3. 读取用户名、是否粉丝、弹幕内容，并打印 */
+
+	/* 4. 判断弹幕名是否符合要求，去除不符合要求的项 */
+
+	/* 5. 用户名去重，打印奖池信息 */
+
+	/* 6. 抽奖，并打印中奖信息 */
+
+exit:
+	/* 7. 释放内存 */
+	if (all_item)
+		free(all_item);
 
 	return 0;
 }
 
 /**
  * @brief	处理字符串，从中找出符合条件的字符串组
- * 
+ * @details	打印发言用户中粉丝总数（未去重）
+ *
  * @param[in]	fdata	file data
  * @param[in]	flen	file data length
  */
-int string_parse(char *fdata, int flen)
+int dump_item(char *fdata, int flen)
 {
 	char *keystr = "粉丝";
 	char *substr;	// 临时的符合条件的子字符串所在指针
@@ -267,7 +329,7 @@ int string_parse(char *fdata, int flen)
  *
  * @param[in]	filename	文件名
  */
-static int file_dump(const char *filename)
+static int dump_file(const char *filename)
 {
 	FILE *fp;
 	long filelen;
@@ -296,17 +358,18 @@ static int file_dump(const char *filename)
 
 /**
  * @brief	处理字符串，从中找出符合条件的字符串组
+ * @details	打印所有发言用户和所有弹幕内容（未去重）
  * 
  * @param[in]	fdata	file data
  * @param[in]	flen	file data length
  */
-int regex_parse(char *fdata, int flen)
+int dump_names_contents(char *fdata, int flen)
 {
 #define NAME_MAX_NUM 64
 #define TIME_STR_CHARSET "1234567890: -"
 	/**
 	 * UTF-8英文字符1个字节 0x00 ~ 0x7F
-	 * UTF-8中文字符2~4个字节 第一个字节有几个bit1则占几个字节，后续的字节高两位也以10开头
+	 * UTF-8中文字符2~4个字节 第一个字节从最高位算起有几个bit 1 则占几个字节，后续的字节高两位也以10开头
 	 */
 
 	char *ptr = fdata; // 拷贝地址进行处理，不修改原始地址
@@ -327,7 +390,7 @@ int regex_parse(char *fdata, int flen)
 	/**
 	 * 空行后面的整行是用户名
 	 * 找到特殊值\n\n一个空行和\n下一个换行之间的是用户名，
-	 * （明明是Windows格式的换行格式，为什么找不到\r\n我也不清楚，可能Linux读文件时内部有替换）
+	 * （明明是Windows格式的换行格式，为什么找不到\r\n我也不清楚，可能Linux读文件时内部直接替换为了\n）
 	 */
 	ptr = fdata;
 	substr = strstr(ptr, "\n\n"); // 找字符串第一次出现的位置
@@ -356,12 +419,10 @@ int regex_parse(char *fdata, int flen)
 	char *starttime;
 	char *endtime;
 	ptr = fdata;
-	substr = strpbrk(ptr, TIME_STR_CHARSET); // 找字符集中的任意一个字符第一次出现的位置
-	//printf("substr: %p, %d\n", substr, substr - ptr);
+	substr = strpbrk(ptr, TIME_STR_CHARSET); /** 找字符集中的任意一个字符第一次出现的位置 */
 	print(DEBUG, LOG, "contents:")
 	while (substr > 0) {
-		pos = strspn(substr, TIME_STR_CHARSET);
-		//printf("time str len: %d\n", pos);
+		pos = strspn(substr, TIME_STR_CHARSET);	/** 找不在字符集中第一个字符出现的相对位置 */
 		if (pos < 5) { // 如果符合条件的字符数目不够，没找到时间字符串
 			substr++;
 			substr = strpbrk(substr, TIME_STR_CHARSET);
@@ -381,7 +442,6 @@ second_timestring_find_again:
 			break;
 		}
 		pos = strspn(substr, TIME_STR_CHARSET);
-		//printf("second time str len: %d\n", pos);
 		if (pos < 5) {
 			substr++;
 			goto second_timestring_find_again;
@@ -392,10 +452,13 @@ second_timestring_find_again:
 			print(ERROR, LOG, "contents length error: %d\n", endtime - starttime);
 			break;
 		}
+		if (endtime - starttime >= NAME_MAX_NUM) {
+			print(ERROR, LOG, "contents length too long!\n");
+			return err_no;
+		}
 		memcpy(name, starttime, endtime - starttime);
 		name[endtime - starttime] = '\0';
 		print(INFO, PURE, " %s |", name);
-		//printf("\n");
 
 		endtime += pos;
 		substr = strpbrk(endtime, TIME_STR_CHARSET);
