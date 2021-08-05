@@ -35,7 +35,7 @@
 #include <stdlib.h>	// malloc() free() memcpy() memset()内存操作
 #include <string.h>	// strlen()等字符串操作
 #include <errno.h>	// 各种错误码宏定义，还可以直接打印errno变量查看系统函数出错信息
-#include <regex.h>	// 正则表达式，需要手动下载编译并安装
+//#include <regex.h>	// 正则表达式，可能需要手动下载编译并安装相关的库，暂未使用
 
 /*================================== 宏定义 ==================================*/
 #define DEFAULT_FILE_NAME "弹幕-正式版.txt"  /** Linux default file format UTF-8 */
@@ -182,7 +182,7 @@ exit:
 
 	fflush(stdout); // 强制printf信息立即显示，和文件写入立即完成
 
-	while(1); // 用于你直接双击运行时能看到控制台信息，而不是闪退
+	//while(1); // 用于你直接双击运行时能看到控制台信息，而不是闪退
 
 	return 0;
 }
@@ -302,38 +302,31 @@ static int file_dump(const char *filename)
  */
 int regex_parse(char *fdata, int flen)
 {
-	main2();
-	return 0;
-}
+	// UTF-8英文字符1个字节 0x00 ~ 0x7F
+	// UTF-8中文字符2~4个字节 第一个字节有几个bit1则占几个字节，后续的字节高两位也以10开头
+	char *ptr = fdata; // 拷贝地址进行处理，不修改原始地址
+	int totalchar = 0;
+	int totalline = 0;
+	char name[64] = {0};
+	while (*ptr++ != '\0') {
+		totalchar++;
+		if (*ptr == '\n')
+			totalline++;
+	}
+	ptr = fdata;
+	print(DEBUG, LOG, "total character: %d\n", totalchar);
+	print(DEBUG, LOG, "total line: %d\n", totalline);
 
-int main2 (void)
-{
-  char ebuff[256];
-  int ret;
-  int cflags;
-  regex_t reg;
-  cflags = REG_EXTENDED | REG_ICASE | REG_NOSUB;
-  char *test_str = "Hello World";
-  char *reg_str = "H.*";
-  ret = regcomp(&reg, reg_str, cflags);
-  if (ret)
-  {  
-    regerror(ret, &reg, ebuff, 256);
-    fprintf(stderr, "%s\n", ebuff);
-    goto end;
-  }  
-  ret = regexec(&reg, test_str, 0, NULL, 0);
-  if (ret)
-  {
-    regerror(ret, &reg, ebuff, 256);
-    fprintf(stderr, "%s\n", ebuff);
-    goto end;
-  }  
-  regerror(ret, &reg, ebuff, 256);
-  fprintf(stderr, "result is:\n%s\n", ebuff);
-end:
-  regfree(&reg);
-  return 0;
+	/** 找到特殊值\n\n一个空行和\n下一个换行之间的是用户名，（为什么找不到\r\n我也不清楚） */
+	printf("0: %p\n", ptr);
+	char *substr = strstr(ptr, "\n\n");
+	printf("1: %p, %d\n", substr, substr - ptr);
+	char *namestr = strstr(substr + 2, "\n");
+	printf("2: %p, %d\n", substr + 2, namestr - substr);
+	memcpy(name, substr + 2, namestr - substr - 2);
+	printf("name: %s\n", name);
+
+	return 0;
 }
 
 /*================================= 文件结尾 =================================*/
