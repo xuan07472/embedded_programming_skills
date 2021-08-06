@@ -259,6 +259,9 @@ static int file_parse(const char *filename)
 
 	string_parse(filedata, filelen); // 处理字符串并进行抽奖
 
+	if (filedata)
+		free(filedata);
+
 	return 0;
 }
 
@@ -294,6 +297,7 @@ static int string_parse(char *fdata, int flen)
 		substr = substr + pos + 1; // 越过整个时间字符串和行结尾
 		substr = strpbrk(substr, TIME_STR_CHARSET);
 	}
+	print(DEBUG, PURE, " =========================================================================================\n")
 	print(DEBUG, LOG, "ITEM NUM: %d\n", item_totalnum);
 
 	/* 2. 分配内存 */
@@ -332,7 +336,7 @@ static int string_parse(char *fdata, int flen)
 				memcpy(cur_value, substr, findstr - substr);
 				cur_value[findstr - substr] = '\0';
 				all_item[item_currentnum].follower.valuelen = findstr - substr;
-				print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].follower.value);
+				print(DEBUG, PURE, " | %s |\t\t", all_item[item_currentnum].follower.value);
 				substr = findstr + 1;
 			}
 			all_item[item_currentnum].follower.key = FOLLOWER;
@@ -341,7 +345,7 @@ static int string_parse(char *fdata, int flen)
 			all_item[item_currentnum].follower.key = FOLLOWER;
 			all_item[item_currentnum].follower.valuelen = 0;
 			all_item[item_currentnum].is_follower = FALSE;
-			print(DEBUG, PURE, "____ |\t\t");
+			print(DEBUG, PURE, " | ____ |\t\t");
 		}
 		print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].name.value);
 
@@ -372,18 +376,11 @@ static int string_parse(char *fdata, int flen)
 		item_currentnum++;
 		substr = strstr(findstr + 1, "\n\n");
 	}
+	print(DEBUG, PURE, " =========================================================================================\n")
 	print(DEBUG, PURE, "\n\n");
-	printf("~~~~%d\n", item_currentnum);
-
-
-	/* 4. 判断弹幕名是否符合要求，去除不符合要求的项 */
-
-	/* 5. 用户名去重，打印奖池信息 */
-
-	/* 6. 抽奖，并打印中奖信息 */
 
 exit:
-	/* 7. 释放内存 */
+	/* 4. 释放内存 */
 	if (all_item)
 		free(all_item);
 
@@ -397,7 +394,19 @@ exit:
  */
 static int lottery_draw(ITEM *items)
 {
+	if (!items)
+		return err_no;
 
+	/* 1. 去除不是粉丝的用户 */
+	
+
+	/* 2. 去除弹幕不符合要求的用户 */
+
+	/* 3. 用户名去重，打印奖池信息 */
+
+	/* 4. 抽奖，并打印中奖信息 */
+
+	return 0;
 }
 
 /**
@@ -465,6 +474,8 @@ static int dump_file(const char *filename)
 	fclose(fp);
 
 	print(DEBUG, LOG, "filedata:\n%s\n", filedata);
+	if (filedata)
+		free(filedata);
 
 	return 0;
 }
