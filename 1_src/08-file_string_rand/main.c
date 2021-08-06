@@ -82,6 +82,7 @@
 
 #define KEYVALUE_MAXLEN	64
 #define TIME_STRING_LEN 19
+#define TIME_STR_CHARSET "1234567890: -"
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 typedef enum {
@@ -115,7 +116,6 @@ typedef struct _ITEM {
 	BOOL true_content;
 	BOOL win;
 } ITEM;
-
 
 /*================================= 全局变量 =================================*/
 static int file_parse(const char *file);
@@ -265,12 +265,58 @@ int string_parse(char *fdata, int flen)
 {
 	char *str = fdata;
 	ITEM *all_item = NULL;
+	int pos;
+	int item_totalnum = 0;
+	int item_currentnum = 0;
+	char *cur_value;
 
 	/* 1. 获取用户总数，并打印 */
+	char *substr = strpbrk(str, TIME_STR_CHARSET); /** 找字符集中的任意一个字符第一次出现的位置 */
+	while (substr > 0) {
+		pos = strspn(substr, TIME_STR_CHARSET);	/** 找不在字符集中第一个字符出现的相对位置 */
+		if (pos < TIME_STRING_LEN) {
+			substr++;
+			substr = strpbrk(substr, TIME_STR_CHARSET);
+			if (substr <= 0) {
+				print(DETAIL, LOG, "can't found time string, or string end\n");
+				break;
+			}
+			continue;
+		
+		}
+		item_totalnum++;
+		substr = substr + pos + 1; // 越过整个时间字符串和行结尾
+		substr = strpbrk(substr, TIME_STR_CHARSET);
+	}
+	print(DEBUG, LOG, "ITEM NUM: %d\n", item_totalnum);
 
 	/* 2. 分配内存 */
+	all_item = malloc(sizeof(ITEM) * item_totalnum);
 
 	/* 3. 读取用户名、是否粉丝、弹幕内容，并打印 */
+	str = fdata;
+	substr = strstr(str, "\n\n"); // 找到空行，空行后面那行是用户名
+	char *namestr;
+	while (substr > 0) {
+		namestr = strstr(substr + 2, "\n");
+		if (namestr > 0) {
+			if (namestr - substr - 2 >= KEYVALUE_MAXLEN) {
+				print(ERROR, LOG, "name length too long!\n");
+				return err_no;
+			}
+			all_item[item_currentnum].name.key = NAME;
+			cur_value = all_item[item_currentnum].name.value;
+			memcpy(cur_value, substr + 2, namestr - substr - 2);
+			cur_value[namestr - substr - 2] = '\0';
+			all_item[item_currentnum].name.valuelen = namestr - substr - 2;
+			item_currentnum++;
+			print(INFO, PURE, " %s |", cur_value);
+		}
+		substr = strstr(namestr + 1, "\n\n");
+	}
+	print(DEBUG, PURE, "\n\n");
+	printf("~~~~%d\n", item_currentnum);
+
 
 	/* 4. 判断弹幕名是否符合要求，去除不符合要求的项 */
 
@@ -298,7 +344,6 @@ int dump_item(char *fdata, int flen)
 	char *keystr = "粉丝";
 	char *substr;	// 临时的符合条件的子字符串所在指针
 	int subnum = 0;	// 被找到的总数
-	
 
 	if (!fdata || !flen) {
 		print(ERROR, LOG, "file data pointer NULL!\n");
@@ -365,8 +410,6 @@ static int dump_file(const char *filename)
  */
 int dump_names_contents(char *fdata, int flen)
 {
-#define NAME_MAX_NUM 64
-#define TIME_STR_CHARSET "1234567890: -"
 	/**
 	 * UTF-8英文字符1个字节 0x00 ~ 0x7F
 	 * UTF-8中文字符2~4个字节 第一个字节从最高位算起有几个bit 1 则占几个字节，后续的字节高两位也以10开头
@@ -375,7 +418,7 @@ int dump_names_contents(char *fdata, int flen)
 	char *ptr = fdata; // 拷贝地址进行处理，不修改原始地址
 	int totalchar = 0;
 	int totalline = 0;
-	char name[NAME_MAX_NUM];
+	char name[KEYVALUE_MAXLEN];
 	char *substr;
 	char *namestr;
 
@@ -398,7 +441,7 @@ int dump_names_contents(char *fdata, int flen)
 	while (substr > 0) {
 		namestr = strstr(substr + 2, "\n");
 		if (namestr > 0) {
-			if (namestr - substr - 2 >= NAME_MAX_NUM) {
+			if (namestr - substr - 2 >= KEYVALUE_MAXLEN) {
 				print(ERROR, LOG, "name length too long!\n");
 				return err_no;
 			}
@@ -427,7 +470,7 @@ int dump_names_contents(char *fdata, int flen)
 			substr++;
 			substr = strpbrk(substr, TIME_STR_CHARSET);
 			if (substr <= 0) {
-				print(ERROR, LOG, "can't found time string\n");
+				print(DETAIL, LOG, "can't found time string, or string end\n");
 				break;
 			}
 			continue;
@@ -452,7 +495,7 @@ second_timestring_find_again:
 			print(ERROR, LOG, "contents length error: %d\n", endtime - starttime);
 			break;
 		}
-		if (endtime - starttime >= NAME_MAX_NUM) {
+		if (endtime - starttime >= KEYVALUE_MAXLEN) {
 			print(ERROR, LOG, "contents length too long!\n");
 			return err_no;
 		}
