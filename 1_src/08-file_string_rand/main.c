@@ -84,7 +84,8 @@
 #define TIME_STRING_LEN 19
 #define TIME_STR_CHARSET "1234567890: -" // 用于匹配日期时间字符串
 #define TABLE_STR_START " =========================================================================================\n `````````````````````````````````````````````````````````````````````````````````````````\n"
-#define TABLE_STR_END " _________________________________________________________________________________________\n =========================================================================================\n"
+#define TABLE_STR_END " _________________________________________________________________________________________\n =========================================================================================\n\n\n"
+#define TABLE_STR_MIDDLE " -----------------------------------------------------------------------------------------\n"
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 typedef enum {
@@ -300,7 +301,7 @@ static int string_parse(char *fdata, int flen)
 		substr = strpbrk(substr, TIME_STR_CHARSET);
 	}
 	print(DEBUG, LOG, "ITEM NUM: %d\n", item_totalnum);
-	print(INFO, PURE, TABLE_STR_START)
+	print(DETAIL, PURE, TABLE_STR_START)
 
 	/* 2. 分配内存 */
 	all_item = malloc(sizeof(ITEM) * item_totalnum);
@@ -338,7 +339,7 @@ static int string_parse(char *fdata, int flen)
 				memcpy(cur_value, substr, findstr - substr);
 				cur_value[findstr - substr] = '\0';
 				all_item[item_currentnum].follower.valuelen = findstr - substr;
-				print(DEBUG, PURE, " || %s |\t\t", all_item[item_currentnum].follower.value);
+				print(DETAIL, PURE, " || %s |\t\t", all_item[item_currentnum].follower.value);
 				substr = findstr + 1;
 			}
 			all_item[item_currentnum].follower.key = FOLLOWER;
@@ -347,9 +348,9 @@ static int string_parse(char *fdata, int flen)
 			all_item[item_currentnum].follower.key = FOLLOWER;
 			all_item[item_currentnum].follower.valuelen = 0;
 			all_item[item_currentnum].is_follower = FALSE;
-			print(DEBUG, PURE, " || ____ |\t\t");
+			print(DETAIL, PURE, " || ____ |\t\t");
 		}
-		print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].name.value);
+		print(DETAIL, PURE, "%s |\t\t", all_item[item_currentnum].name.value);
 
 		substr = strpbrk(substr, TIME_STR_CHARSET); /** 找字符集中的任意一个字符第一次出现的位置 */
 		pos = strspn(substr, TIME_STR_CHARSET);	/** 找不在字符集中第一个字符出现的相对位置 */
@@ -361,25 +362,24 @@ static int string_parse(char *fdata, int flen)
 		all_item[item_currentnum].content.valuelen = findstr - substr;
 		memcpy(cur_value, substr, findstr - substr);
 		cur_value[findstr - substr] = '\0';
-		print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].content.value);
+		print(DETAIL, PURE, "%s |\t\t", all_item[item_currentnum].content.value);
 
 		char *tmpstr = strpbrk(substr, "cC"); // 找是否存在大小写C，用来匹配“C语言程序设计现代方法”字符串
 		/** 已识别弹幕是否符合要求 */
 		if (tmpstr >= substr && tmpstr <= findstr) { // 如果弹幕符合条件
 			all_item[item_currentnum].true_content = TRUE;
-			print(DEBUG, PURE, "!!!!YES!!!!|\t\t");
+			print(DETAIL, PURE, "!!!!YES!!!!|\t\t");
 		} else {
 			all_item[item_currentnum].true_content = FALSE;
-			print(DEBUG, PURE, "____NO____|\t\t");
+			print(DETAIL, PURE, "____NO____|\t\t");
 		
 		}
 
-		print(DEBUG, PURE, "\n");
+		print(DETAIL, PURE, "\n");
 		item_currentnum++;
 		substr = strstr(findstr + 1, "\n\n");
 	}
-	print(DEBUG, PURE, TABLE_STR_END)
-	print(DEBUG, PURE, "\n\n");
+	print(DETAIL, PURE, TABLE_STR_END)
 
 exit:
 
@@ -397,15 +397,11 @@ static int lottery_draw(ITEM *items, int num)
 	if (!items || !num)
 		return err_no;
 
-	/* 1. 去除不是粉丝的用户 */
+	/* 1. 打印原始信息 */
+	print(DEBUG, PURE, " \t\t\t@@@@####======== 所有弹幕信息 ========####@@@@\n");
 	print(DEBUG, PURE, TABLE_STR_START)
-	printf("[%d] %s\n", items[0].name.valuelen, items[0].name.value);
-	for (int i=0; i<items[0].name.valuelen; i++) {
-		printf("%02x(%c) ", items[0].name.value[i], items[0].name.value[i]);
-	}
-	printf("\n");
-
 	print(DEBUG, PURE, " || index\t| name\t\t| follower\t| content\t\t\t| true_content\t |\n");
+	print(DEBUG, PURE, TABLE_STR_MIDDLE)
 	for (int i = 0; i < num; i++) {
 		print(DEBUG, PURE, " || %d\t\t|", i);
 		print(DEBUG, PURE, " %s\t|", items[i].name.value);
@@ -418,14 +414,14 @@ static int lottery_draw(ITEM *items, int num)
 		print(DEBUG, PURE, " %s\t|\n", (items[i].true_content ? "!!YES!!" : "__NO__"));
 	}
 	print(DEBUG, PURE, TABLE_STR_END)
-	print(DEBUG, PURE, "\n\n");
 
+	/* 2. 去除不是粉丝的用户 */
 
-	/* 2. 去除弹幕不符合要求的用户 */
+	/* 3. 去除弹幕不符合要求的用户 */
 
-	/* 3. 用户名去重，打印奖池信息 */
+	/* 4. 用户名去重，打印奖池信息 */
 
-	/* 4. 抽奖，并打印中奖信息 */
+	/* 5. 抽奖，并打印中奖信息 */
 
 	return 0;
 }
