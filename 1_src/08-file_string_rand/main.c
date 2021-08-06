@@ -120,9 +120,12 @@ typedef struct _ITEM {
 /*================================= 全局变量 =================================*/
 static int file_parse(const char *file);
 static int string_parse(char *fdata, int flen);
+static int lottery_draw(ITEM *items);
 static int dump_file(const char *file);
 static int dump_item(char *fdata, int flen);
 static int dump_names_contents(char *fdata, int flen);
+ITEM *all_item = NULL;
+int item_totalnum = 0;
 
 /*================================= 接口函数 =================================*/
 /**
@@ -176,7 +179,7 @@ int main(int argc, void *argv[])
 	}
 	print(DETAIL, LOG, "iconv out[%d]: %s\n", olen, oname);
 
-	/* 2. 判断文件存在并可读 */
+	/* 4. 判断文件存在并可读 */
 	if (access(oname, R_OK) == 0) {
 		print(DEBUG, LOG, "yes, valid filename: %s\n", oname);
 	} else {
@@ -188,11 +191,16 @@ int main(int argc, void *argv[])
 	if (CUR_PRINT_LEVEL >= DETAIL)
 		dump_file(oname);
 
-	/* 3. 处理文件并抽奖 */
+	/* 5. 处理文件并分析文件中信息 */
 	file_parse(oname);
 
-	/* 4. 释放资源并退出 */
+	/* 6. 弹幕去重并抽奖 */
+	lottery_draw(all_item);
+
+	/* 7. 释放资源并退出 */
 exit:
+	fflush(stdout); // 强制printf信息立即显示，和文件写入立即完成
+
 	/* 退出文件转码库 */
 	if ((iconv_t)-1 == cd && NULL != cd) {
 		iconv_close(cd);
@@ -203,8 +211,8 @@ exit:
 		free(iname);
 	if (oname)
 		free(oname);
-
-	fflush(stdout); // 强制printf信息立即显示，和文件写入立即完成
+	if (all_item)
+		free(all_item);
 
 	//while(1); // 用于你直接双击运行时能看到控制台信息，而不是闪退
 
@@ -214,7 +222,8 @@ exit:
 /*================================= 私有函数 =================================*/
 
 /**
- * @brief	读取文件并进行抽奖
+ * @brief	读取文件并解析用户名、是否粉丝、弹幕内容等
+ * @details	解析后的内容存在全局变量中
  *
  * @param[in]	filename	文件名
  */
@@ -255,18 +264,15 @@ static int file_parse(const char *filename)
 
 /**
  * @brief	处理字符串，进行抽奖
- * @details	获取用户名总数，获取用户名-是否粉丝-发言内容并打印，挑选粉丝+发言包含‘c/C语言’的用户，
- * 		去重并打印，放入抽奖池，进行抽奖，打印抽奖结果
+ * @details	获取用户名总数，获取用户名-是否粉丝-发言内容并打印，判断是否粉丝，判断发言是否包含‘c/C语言’
  * 
  * @param[in]	fdata	file data
  * @param[in]	flen	file data length
  */
-int string_parse(char *fdata, int flen)
+static int string_parse(char *fdata, int flen)
 {
 	char *str = fdata;
-	ITEM *all_item = NULL;
 	int pos;
-	int item_totalnum = 0;
 	int item_currentnum = 0;
 	char *cur_value;
 
@@ -296,23 +302,75 @@ int string_parse(char *fdata, int flen)
 	/* 3. 读取用户名、是否粉丝、弹幕内容，并打印 */
 	str = fdata;
 	substr = strstr(str, "\n\n"); // 找到空行，空行后面那行是用户名
-	char *namestr;
+	char *findstr;
 	while (substr > 0) {
-		namestr = strstr(substr + 2, "\n");
-		if (namestr > 0) {
-			if (namestr - substr - 2 >= KEYVALUE_MAXLEN) {
-				print(ERROR, LOG, "name length too long!\n");
-				return err_no;
-			}
-			all_item[item_currentnum].name.key = NAME;
-			cur_value = all_item[item_currentnum].name.value;
-			memcpy(cur_value, substr + 2, namestr - substr - 2);
-			cur_value[namestr - substr - 2] = '\0';
-			all_item[item_currentnum].name.valuelen = namestr - substr - 2;
-			item_currentnum++;
-			print(INFO, PURE, " %s |", cur_value);
+		findstr = strstr(substr + 2, "\n");
+		if (findstr <= 0) {
+			substr += 3;
+			substr = strstr(substr, "\n");
+			continue;
 		}
-		substr = strstr(namestr + 1, "\n\n");
+		if (findstr - substr - 2 >= KEYVALUE_MAXLEN) {
+			print(ERROR, LOG, "name length too long!\n");
+			return err_no;
+		}
+		/** 已找到用户名字符串 */
+		all_item[item_currentnum].name.key = NAME;
+		cur_value = all_item[item_currentnum].name.value;
+		memcpy(cur_value, substr + 2, findstr - substr - 2);
+		cur_value[findstr - substr - 2] = '\0';
+		all_item[item_currentnum].name.valuelen = findstr - substr - 2;
+
+		substr = findstr + 1; // 越过换行符，下一行如果不是时间，则就是“粉丝”
+		pos = strspn(substr, TIME_STR_CHARSET);	/** 找不在字符集中第一个字符出现的相对位置 */
+
+		/** 已找到是否有“粉丝”标志 */
+		if (pos <= 0) { // 如果找到了“粉丝标志”
+			findstr = strstr(substr, "\n");
+			if (findstr > 0) {
+				cur_value = all_item[item_currentnum].follower.value;
+				memcpy(cur_value, substr, findstr - substr);
+				cur_value[findstr - substr] = '\0';
+				all_item[item_currentnum].follower.valuelen = findstr - substr;
+				print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].follower.value);
+				substr = findstr + 1;
+			}
+			all_item[item_currentnum].follower.key = FOLLOWER;
+			all_item[item_currentnum].is_follower = TRUE;
+		} else {
+			all_item[item_currentnum].follower.key = FOLLOWER;
+			all_item[item_currentnum].follower.valuelen = 0;
+			all_item[item_currentnum].is_follower = FALSE;
+			print(DEBUG, PURE, "____ |\t\t");
+		}
+		print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].name.value);
+
+		substr = strpbrk(substr, TIME_STR_CHARSET); /** 找字符集中的任意一个字符第一次出现的位置 */
+		pos = strspn(substr, TIME_STR_CHARSET);	/** 找不在字符集中第一个字符出现的相对位置 */
+		substr += (pos + 1); // 越过日期时间字符串
+		findstr = strstr(substr, "\n"); // 找到当前行末尾，当前行的内容就是弹幕内容
+
+		/** 已找到弹幕 */
+		cur_value = all_item[item_currentnum].content.value;
+		all_item[item_currentnum].content.valuelen = findstr - substr;
+		memcpy(cur_value, substr, findstr - substr);
+		cur_value[findstr - substr] = '\0';
+		print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].content.value);
+
+		char *tmpstr = strpbrk(substr, "cC"); // 找是否存在大小写C，用来匹配“C语言程序设计现代方法”字符串
+		/** 已识别弹幕是否符合要求 */
+		if (tmpstr >= substr && tmpstr <= findstr) { // 如果弹幕符合条件
+			all_item[item_currentnum].true_content = TRUE;
+			print(DEBUG, PURE, "!!!!YES!!!!|\t\t");
+		} else {
+			all_item[item_currentnum].true_content = FALSE;
+			print(DEBUG, PURE, "____NO____|\t\t");
+		
+		}
+
+		print(DEBUG, PURE, "\n");
+		item_currentnum++;
+		substr = strstr(findstr + 1, "\n\n");
 	}
 	print(DEBUG, PURE, "\n\n");
 	printf("~~~~%d\n", item_currentnum);
@@ -333,13 +391,23 @@ exit:
 }
 
 /**
+ * @brief	信息数组去重并抽奖
+ *
+ * @param[in]	items	已解析过的所有的用户和弹幕信息
+ */
+static int lottery_draw(ITEM *items)
+{
+
+}
+
+/**
  * @brief	处理字符串，从中找出符合条件的字符串组
  * @details	打印发言用户中粉丝总数（未去重）
  *
  * @param[in]	fdata	file data
  * @param[in]	flen	file data length
  */
-int dump_item(char *fdata, int flen)
+static int dump_item(char *fdata, int flen)
 {
 	char *keystr = "粉丝";
 	char *substr;	// 临时的符合条件的子字符串所在指针
@@ -408,7 +476,7 @@ static int dump_file(const char *filename)
  * @param[in]	fdata	file data
  * @param[in]	flen	file data length
  */
-int dump_names_contents(char *fdata, int flen)
+static int dump_names_contents(char *fdata, int flen)
 {
 	/**
 	 * UTF-8英文字符1个字节 0x00 ~ 0x7F
