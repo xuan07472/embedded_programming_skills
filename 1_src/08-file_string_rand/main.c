@@ -487,23 +487,23 @@ static int lottery_draw(ITEM *items, int num)
 	int can_choose_total = index; // 可抽奖粉丝数 + 1
 	int choose_num = 5; // 抽奖5名粉丝
 	int a, p;
-	srand((unsigned int )time(NULL));
+	srand((unsigned int )time(NULL)); // 用当前时间重置随机数种子
 #define CHOOSE_MAX 64
 	int was_choose[CHOOSE_MAX] = {0};
 	print(INFO, LOG, "中奖序号：");
-	for (size_t i = 0; i < choose_num; i++)
+	for (int i = 0; i < choose_num; i++)
 	{
 again:
 		a = rand();
-		p = a % can_choose_total; // 设置范围1 ~ (can_choose_total - 1)
-		p++; // 0是特殊值，抽奖的每个数都+1
+		p = a % can_choose_total; // 设置范围0 ~ (can_choose_total - 1)
+		p++; // 0是特殊值，抽奖的每个数都 + 1
 		int j;
 		for (j = 0; j < CHOOSE_MAX; j++) {
 			if (was_choose[j] == p) // 如果抽到重复的则重新抽
 				goto again;
 		}
 		if (j == CHOOSE_MAX) {
-			was_choose[i] = p; // 中奖序号+1
+			was_choose[i] = p; // 中奖序号 + 1
 			print(INFO, PURE, "%d  ", p - 1);
 		}
 	}
@@ -517,7 +517,7 @@ again:
 	index = 0;
 	for (int i = 0; i < num; i++) {
 		if (items[i].can_choose) {
-			index++;
+			index++; // 提前+1和中奖序号进行对比
 			for (int j = 0; j < CHOOSE_MAX; j++) {
 				if (index == was_choose[j]) {
 					print(DEBUG, PURE, " || %d\t\t|", index - 1);
@@ -721,4 +721,3 @@ second_timestring_find_again:
 }
 
 /*================================= 文件结尾 =================================*/
-
