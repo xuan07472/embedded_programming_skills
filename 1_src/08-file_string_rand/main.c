@@ -82,7 +82,9 @@
 
 #define KEYVALUE_MAXLEN	64
 #define TIME_STRING_LEN 19
-#define TIME_STR_CHARSET "1234567890: -"
+#define TIME_STR_CHARSET "1234567890: -" // 用于匹配日期时间字符串
+#define TABLE_STR_START " =========================================================================================\n `````````````````````````````````````````````````````````````````````````````````````````\n"
+#define TABLE_STR_END " _________________________________________________________________________________________\n =========================================================================================\n"
 
 /*==================== 类型定义（struct、 enum 和 typedef） ==================*/
 typedef enum {
@@ -297,8 +299,8 @@ static int string_parse(char *fdata, int flen)
 		substr = substr + pos + 1; // 越过整个时间字符串和行结尾
 		substr = strpbrk(substr, TIME_STR_CHARSET);
 	}
-	print(DEBUG, PURE, " =========================================================================================\n")
 	print(DEBUG, LOG, "ITEM NUM: %d\n", item_totalnum);
+	print(INFO, PURE, TABLE_STR_START)
 
 	/* 2. 分配内存 */
 	all_item = malloc(sizeof(ITEM) * item_totalnum);
@@ -336,7 +338,7 @@ static int string_parse(char *fdata, int flen)
 				memcpy(cur_value, substr, findstr - substr);
 				cur_value[findstr - substr] = '\0';
 				all_item[item_currentnum].follower.valuelen = findstr - substr;
-				print(DEBUG, PURE, " | %s |\t\t", all_item[item_currentnum].follower.value);
+				print(DEBUG, PURE, " || %s |\t\t", all_item[item_currentnum].follower.value);
 				substr = findstr + 1;
 			}
 			all_item[item_currentnum].follower.key = FOLLOWER;
@@ -345,7 +347,7 @@ static int string_parse(char *fdata, int flen)
 			all_item[item_currentnum].follower.key = FOLLOWER;
 			all_item[item_currentnum].follower.valuelen = 0;
 			all_item[item_currentnum].is_follower = FALSE;
-			print(DEBUG, PURE, " | ____ |\t\t");
+			print(DEBUG, PURE, " || ____ |\t\t");
 		}
 		print(DEBUG, PURE, "%s |\t\t", all_item[item_currentnum].name.value);
 
@@ -376,7 +378,7 @@ static int string_parse(char *fdata, int flen)
 		item_currentnum++;
 		substr = strstr(findstr + 1, "\n\n");
 	}
-	print(DEBUG, PURE, " =========================================================================================\n")
+	print(DEBUG, PURE, TABLE_STR_END)
 	print(DEBUG, PURE, "\n\n");
 
 exit:
