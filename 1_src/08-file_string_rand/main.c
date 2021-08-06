@@ -78,7 +78,7 @@
 						printf("["#level"] "); \
 					printf(__VA_ARGS__); \
 				} \
-			} while (0);
+			} while (0)
 
 #define KEYVALUE_MAXLEN	64
 #define TIME_STRING_LEN 19
@@ -112,12 +112,13 @@ typedef struct _KEY_VALUE {
 } KEY_VALUE;
 
 typedef struct _ITEM {
-	KEY_VALUE name;
-	KEY_VALUE content;
-	KEY_VALUE follower;
-	BOOL is_follower;
-	BOOL true_content;
-	BOOL win;
+	KEY_VALUE name;		/** 用户名 */
+	KEY_VALUE content;	/** 弹幕 */
+	KEY_VALUE follower;	/** 粉丝 */
+	BOOL is_follower;	/** 是否粉丝 */
+	BOOL true_content;	/** 弹幕是否有效 */
+	BOOL can_choose;	/** 是否已去重 */
+	BOOL win;			/** 是否已中奖 */
 } ITEM;
 
 /*================================= 全局变量 =================================*/
@@ -301,7 +302,7 @@ static int string_parse(char *fdata, int flen)
 		substr = strpbrk(substr, TIME_STR_CHARSET);
 	}
 	print(DEBUG, LOG, "ITEM NUM: %d\n", item_totalnum);
-	print(DETAIL, PURE, TABLE_STR_START)
+	print(DETAIL, PURE, TABLE_STR_START);
 
 	/* 2. 分配内存 */
 	all_item = malloc(sizeof(ITEM) * item_totalnum);
@@ -379,7 +380,7 @@ static int string_parse(char *fdata, int flen)
 		item_currentnum++;
 		substr = strstr(findstr + 1, "\n\n");
 	}
-	print(DETAIL, PURE, TABLE_STR_END)
+	print(DETAIL, PURE, TABLE_STR_END);
 
 exit:
 
@@ -399,29 +400,77 @@ static int lottery_draw(ITEM *items, int num)
 
 	/* 1. 打印原始信息 */
 	print(DEBUG, PURE, " \t\t\t@@@@####======== 所有弹幕信息 ========####@@@@\n");
-	print(DEBUG, PURE, TABLE_STR_START)
-	print(DEBUG, PURE, " || index\t| name\t\t| follower\t| content\t\t\t| true_content\t |\n");
-	print(DEBUG, PURE, TABLE_STR_MIDDLE)
+	print(DEBUG, PURE, TABLE_STR_START);
+	print(DEBUG, PURE, " || index\t| follower\t| true_content\t| name\t\t| content\t\t|\n");
+	print(DEBUG, PURE, TABLE_STR_MIDDLE);
 	for (int i = 0; i < num; i++) {
 		print(DEBUG, PURE, " || %d\t\t|", i);
-		print(DEBUG, PURE, " %s\t|", items[i].name.value);
 		if (items[i].follower.valuelen) {
 			print(DEBUG, PURE, " %s\t\t|", items[i].follower.value);
 		} else {
 			print(DEBUG, PURE, " ____\t\t|");
 		}
-		print(DEBUG, PURE, " %s\t\t|", items[i].content.value);
-		print(DEBUG, PURE, " %s\t|\n", (items[i].true_content ? "!!YES!!" : "__NO__"));
+		print(DEBUG, PURE, " %s\t|", (items[i].true_content ? "!!YES!!" : "__NO__"));
+		print(DEBUG, PURE, " %s\t|", items[i].name.value);
+		print(DEBUG, PURE, " %s |\n", items[i].content.value);
 	}
-	print(DEBUG, PURE, TABLE_STR_END)
+	print(DEBUG, PURE, TABLE_STR_END);
 
-	/* 2. 去除不是粉丝的用户 */
+	/* 2. 去除不是粉丝、弹幕不符合要求的用户 */
+	print(DEBUG, PURE, " \t\t\t@@@@####======== 有效弹幕（未去重） ========####@@@@\n");
+	print(DEBUG, PURE, TABLE_STR_START);
+	print(DEBUG, PURE, " || index\t| follower\t| true_content\t| name\t\t| content\t\t|\n");
+	print(DEBUG, PURE, TABLE_STR_MIDDLE);
+	int index = 0;
+	for (int i = 0; i < num; i++) {
+		items[i].can_choose = TRUE;
+		if (!items[i].is_follower)
+			items[i].can_choose = FALSE;
+		if (!items[i].true_content)
+			items[i].can_choose = FALSE;
+		if (items[i].can_choose) {
+			print(DEBUG, PURE, " || %d\t\t|", index);
+			if (items[i].follower.valuelen) {
+				print(DEBUG, PURE, " %s\t\t|", items[i].follower.value);
+			} else {
+				print(DEBUG, PURE, " ____\t\t|");
+			}
+			print(DEBUG, PURE, " %s\t|", (items[i].true_content ? "!!YES!!" : "__NO__"));
+			print(DEBUG, PURE, " %s\t|", items[i].name.value);
+			print(DEBUG, PURE, " %s |\n", items[i].content.value);
+			index++;
+		}
+	}
+	print(DEBUG, PURE, TABLE_STR_END);
 
-	/* 3. 去除弹幕不符合要求的用户 */
+	/* 3. 用户名去重，打印奖池信息 */
+	print(DEBUG, PURE, " \t\t\t@@@@####======== 有效弹幕 ========####@@@@\n");
+	print(DEBUG, PURE, TABLE_STR_START);
+	print(DEBUG, PURE, " || index\t| follower\t| true_content\t| name\t\t| content\t\t|\n");
+	print(DEBUG, PURE, TABLE_STR_MIDDLE);
+	index = 0;
+	for (int i = 0; i < num; i++) {
+		items[i].can_choose = TRUE;
+		if (!items[i].is_follower)
+			items[i].can_choose = FALSE;
+		if (!items[i].true_content)
+			items[i].can_choose = FALSE;
+		if (items[i].can_choose) {
+			print(DEBUG, PURE, " || %d\t\t|", index);
+			if (items[i].follower.valuelen) {
+				print(DEBUG, PURE, " %s\t\t|", items[i].follower.value);
+			} else {
+				print(DEBUG, PURE, " ____\t\t|");
+			}
+			print(DEBUG, PURE, " %s\t|", (items[i].true_content ? "!!YES!!" : "__NO__"));
+			print(DEBUG, PURE, " %s\t|", items[i].name.value);
+			print(DEBUG, PURE, " %s |\n", items[i].content.value);
+			index++;
+		}
+	}
+	print(DEBUG, PURE, TABLE_STR_END);
 
-	/* 4. 用户名去重，打印奖池信息 */
-
-	/* 5. 抽奖，并打印中奖信息 */
+	/* 4. 抽奖，并打印中奖信息 */
 
 	return 0;
 }
@@ -533,7 +582,7 @@ static int dump_names_contents(char *fdata, int flen)
 	 */
 	ptr = fdata;
 	substr = strstr(ptr, "\n\n"); // 找字符串第一次出现的位置
-	print(DEBUG, LOG, "names:")
+	print(DEBUG, LOG, "names:");
 	while (substr > 0) {
 		namestr = strstr(substr + 2, "\n");
 		if (namestr > 0) {
@@ -559,7 +608,7 @@ static int dump_names_contents(char *fdata, int flen)
 	char *endtime;
 	ptr = fdata;
 	substr = strpbrk(ptr, TIME_STR_CHARSET); /** 找字符集中的任意一个字符第一次出现的位置 */
-	print(DEBUG, LOG, "contents:")
+	print(DEBUG, LOG, "contents:");
 	while (substr > 0) {
 		pos = strspn(substr, TIME_STR_CHARSET);	/** 找不在字符集中第一个字符出现的相对位置 */
 		if (pos < 5) { // 如果符合条件的字符数目不够，没找到时间字符串
