@@ -450,11 +450,13 @@ static int lottery_draw(ITEM *items, int num)
 	print(DEBUG, PURE, TABLE_STR_MIDDLE);
 	index = 0;
 	for (int i = 0; i < num; i++) {
-		items[i].can_choose = TRUE;
-		if (!items[i].is_follower)
-			items[i].can_choose = FALSE;
-		if (!items[i].true_content)
-			items[i].can_choose = FALSE;
+		for (int j = i; j < num; j++) {
+			if (i == j)
+				continue;
+			if (!strcmp(items[i].name.value, items[j].name.value)) { // 如果两个字符串相等
+				items[j].can_choose = FALSE;
+			}
+		}
 		if (items[i].can_choose) {
 			print(DEBUG, PURE, " || %d\t\t|", index);
 			if (items[i].follower.valuelen) {
@@ -470,7 +472,40 @@ static int lottery_draw(ITEM *items, int num)
 	}
 	print(DEBUG, PURE, TABLE_STR_END);
 
+	print(DEBUG, PURE, " @@@@####======== 抽奖5名粉丝，送《C语言程序设计-现代方法（最新修订版）》，书价一百多元 ========####@@@@\n");
+	print(INFO, LOG, "现在开始抽奖……\n");
+	fflush(stdout);
+	for (int i = 0; i < 100; i++) {
+		print(INFO, PURE, ".");
+		fflush(stdout);
+		usleep(10 * 1000);
+	}
+	print(INFO, PURE, "\n");
+
+	int can_choose_total = index;
+	int choose_num = 5; // 抽奖5名粉丝
+
 	/* 4. 抽奖，并打印中奖信息 */
+	print(DEBUG, PURE, " \t\t\t@@@@####======== 中奖信息 ========####@@@@\n");
+	print(DEBUG, PURE, TABLE_STR_START);
+	print(DEBUG, PURE, " || index\t| follower\t| true_content\t| name\t\t| content\t\t|\n");
+	print(DEBUG, PURE, TABLE_STR_MIDDLE);
+	index = 0;
+	for (int i = 0; i < num; i++) {
+		if (items[i].can_choose) {
+			print(DEBUG, PURE, " || %d\t\t|", index);
+			if (items[i].follower.valuelen) {
+				print(DEBUG, PURE, " %s\t\t|", items[i].follower.value);
+			} else {
+				print(DEBUG, PURE, " ____\t\t|");
+			}
+			print(DEBUG, PURE, " %s\t|", (items[i].true_content ? "!!YES!!" : "__NO__"));
+			print(DEBUG, PURE, " %s\t|", items[i].name.value);
+			print(DEBUG, PURE, " %s |\n", items[i].content.value);
+			index++;
+		}
+	}
+	print(DEBUG, PURE, TABLE_STR_END);
 
 	return 0;
 }
