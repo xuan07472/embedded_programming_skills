@@ -122,12 +122,12 @@ typedef struct _ITEM {
 /*================================= 全局变量 =================================*/
 static int file_parse(const char *file);
 static int string_parse(char *fdata, int flen);
-static int lottery_draw(ITEM *items);
+static int lottery_draw(ITEM *items, int num);
 static int dump_file(const char *file);
 static int dump_item(char *fdata, int flen);
 static int dump_names_contents(char *fdata, int flen);
-ITEM *all_item = NULL;
-int item_totalnum = 0;
+static ITEM *all_item = NULL;
+static int item_totalnum = 0;
 
 /*================================= 接口函数 =================================*/
 /**
@@ -197,7 +197,7 @@ int main(int argc, void *argv[])
 	file_parse(oname);
 
 	/* 6. 弹幕去重并抽奖 */
-	lottery_draw(all_item);
+	lottery_draw(all_item, item_totalnum);
 
 	/* 7. 释放资源并退出 */
 exit:
@@ -382,9 +382,6 @@ static int string_parse(char *fdata, int flen)
 	print(DEBUG, PURE, "\n\n");
 
 exit:
-	/* 4. 释放内存 */
-	if (all_item)
-		free(all_item);
 
 	return 0;
 }
@@ -393,14 +390,36 @@ exit:
  * @brief	信息数组去重并抽奖
  *
  * @param[in]	items	已解析过的所有的用户和弹幕信息
+ * @param[in]	num		项目总数
  */
-static int lottery_draw(ITEM *items)
+static int lottery_draw(ITEM *items, int num)
 {
-	if (!items)
+	if (!items || !num)
 		return err_no;
 
 	/* 1. 去除不是粉丝的用户 */
-	
+	print(DEBUG, PURE, TABLE_STR_START)
+	printf("[%d] %s\n", items[0].name.valuelen, items[0].name.value);
+	for (int i=0; i<items[0].name.valuelen; i++) {
+		printf("%02x(%c) ", items[0].name.value[i], items[0].name.value[i]);
+	}
+	printf("\n");
+
+	print(DEBUG, PURE, " || index\t| name\t\t| follower\t| content\t\t\t| true_content\t |\n");
+	for (int i = 0; i < num; i++) {
+		print(DEBUG, PURE, " || %d\t\t|", i);
+		print(DEBUG, PURE, " %s\t|", items[i].name.value);
+		if (items[i].follower.valuelen) {
+			print(DEBUG, PURE, " %s\t\t|", items[i].follower.value);
+		} else {
+			print(DEBUG, PURE, " ____\t\t|");
+		}
+		print(DEBUG, PURE, " %s\t\t|", items[i].content.value);
+		print(DEBUG, PURE, " %s\t|\n", (items[i].true_content ? "!!YES!!" : "__NO__"));
+	}
+	print(DEBUG, PURE, TABLE_STR_END)
+	print(DEBUG, PURE, "\n\n");
+
 
 	/* 2. 去除弹幕不符合要求的用户 */
 
