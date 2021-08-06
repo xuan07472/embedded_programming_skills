@@ -32,9 +32,10 @@
 #include <unistd.h>	// access()判断文件可访问
 #include <wchar.h>	// L"中文字符串" 双字节宽字符(并不直接就是GB2312或者Unicode，依赖你文件的保存格式)
 #include <iconv.h>	// iconv()中文编码转换，可能要手动下载并安装libiconv动态库
-#include <stdlib.h>	// malloc() free() memcpy() memset()内存操作
+#include <stdlib.h>	// malloc() free() memcpy() memset()内存操作 rand()随机数
 #include <string.h>	// strlen()等字符串操作
 #include <errno.h>	// 各种错误码宏定义，还可以直接打印errno变量查看系统函数出错信息
+#include <time.h>	// 用当前时间做随机数种子
 //#include <regex.h>	// 正则表达式，可能需要手动下载编译并安装相关的库，暂未使用
 
 /*================================== 宏定义 ==================================*/
@@ -472,6 +473,7 @@ static int lottery_draw(ITEM *items, int num)
 	}
 	print(DEBUG, PURE, TABLE_STR_END);
 
+	/* 4. 抽奖 */
 	print(DEBUG, PURE, " @@@@####======== 抽奖5名粉丝，送《C语言程序设计-现代方法（最新修订版）》，书价一百多元 ========####@@@@\n");
 	print(INFO, LOG, "现在开始抽奖……\n");
 	fflush(stdout);
@@ -482,10 +484,32 @@ static int lottery_draw(ITEM *items, int num)
 	}
 	print(INFO, PURE, "\n");
 
-	int can_choose_total = index;
+	int can_choose_total = index; // 可抽奖粉丝数 + 1
 	int choose_num = 5; // 抽奖5名粉丝
+	int a, p;
+	srand((unsigned int )time(NULL));
+#define CHOOSE_MAX 64
+	int was_choose[CHOOSE_MAX] = {0};
+	print(INFO, LOG, "中奖序号：");
+	for (size_t i = 0; i < choose_num; i++)
+	{
+again:
+		a = rand();
+		p = a % can_choose_total; // 设置范围1 ~ (can_choose_total - 1)
+		p++; // 0是特殊值，抽奖的每个数都+1
+		int j;
+		for (j = 0; j < CHOOSE_MAX; j++) {
+			if (was_choose[j] == p) // 如果抽到重复的则重新抽
+				goto again;
+		}
+		if (j == CHOOSE_MAX) {
+			was_choose[i] = p; // 中奖序号+1
+			print(INFO, PURE, "%d  ", p - 1);
+		}
+	}
+	print(INFO, PURE, "\n");
 
-	/* 4. 抽奖，并打印中奖信息 */
+	/* 5. 打印中奖信息 */
 	print(DEBUG, PURE, " \t\t\t@@@@####======== 中奖信息 ========####@@@@\n");
 	print(DEBUG, PURE, TABLE_STR_START);
 	print(DEBUG, PURE, " || index\t| follower\t| true_content\t| name\t\t| content\t\t|\n");
@@ -493,16 +517,20 @@ static int lottery_draw(ITEM *items, int num)
 	index = 0;
 	for (int i = 0; i < num; i++) {
 		if (items[i].can_choose) {
-			print(DEBUG, PURE, " || %d\t\t|", index);
-			if (items[i].follower.valuelen) {
-				print(DEBUG, PURE, " %s\t\t|", items[i].follower.value);
-			} else {
-				print(DEBUG, PURE, " ____\t\t|");
-			}
-			print(DEBUG, PURE, " %s\t|", (items[i].true_content ? "!!YES!!" : "__NO__"));
-			print(DEBUG, PURE, " %s\t|", items[i].name.value);
-			print(DEBUG, PURE, " %s |\n", items[i].content.value);
 			index++;
+			for (int j = 0; j < CHOOSE_MAX; j++) {
+				if (index == was_choose[j]) {
+					print(DEBUG, PURE, " || %d\t\t|", index - 1);
+					if (items[i].follower.valuelen) {
+						print(DEBUG, PURE, " %s\t\t|", items[i].follower.value);
+					} else {
+						print(DEBUG, PURE, " ____\t\t|");
+					}
+					print(DEBUG, PURE, " %s\t|", (items[i].true_content ? "!!YES!!" : "__NO__"));
+					print(DEBUG, PURE, " %s\t|", items[i].name.value);
+					print(DEBUG, PURE, " %s |\n", items[i].content.value);
+				}
+			}
 		}
 	}
 	print(DEBUG, PURE, TABLE_STR_END);
