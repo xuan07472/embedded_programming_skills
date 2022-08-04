@@ -6,7 +6,7 @@ typedef struct _loop_buf {
         char *buf;
         unsigned int head;
         unsigned int tail;
-        unsigned int size;   /**< 4 */
+        unsigned int size;   /**< 缓存总大小 */
         unsigned int remain; /**< 剩余空间 */
 } LOOP_BUFFER;
 
