@@ -52,3 +52,10 @@
     ├── README.md        // 整个工程的说明文档<br>
     └── vimrc            // vi编辑器的配置文件示例<br>
 </p>
+
+* 暂时只加入了GNU/Linux gcc编译环境的编译文件Makefile，VS或者Qt里需要自己创建工程。
+* 注意，本源码是和相关b站视频配套使用的：
+https://space.bilibili.com/106424039
+
+![image](C语言讲解视频.jpg)
+

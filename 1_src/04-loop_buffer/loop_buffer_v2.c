@@ -3,6 +3,7 @@
  * \brief loop buffer, ring buffer
  * \author JiangLangCaiJing
  * \date 2022-08-04
+ * \note the logic is based on linux/lib/kfifo.c from linux
  */
 
 #include <stdlib.h> // malloc
